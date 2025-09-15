@@ -14,6 +14,13 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
+        // ▼▼▼ [추가] C++ 빌드 설정을 CMake에 연결합니다. ▼▼▼
+        externalNativeBuild {
+            cmake {
+                cppFlags("")
+            }
+        }
     }
 
     buildTypes {
@@ -35,9 +42,18 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
+
+    // ▼▼▼ [추가] C++ 코드를 빌드할 경로를 지정합니다. ▼▼▼
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
 }
 
 dependencies {
+    // (기존 dependencies 내용은 그대로 유지)
     val room_version = "2.6.1"
     val wear_compose_version = "1.3.1"
 

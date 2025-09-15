@@ -11,14 +11,3 @@ object ExerciseType {
     const val LUNGE = "Lunge"
     const val DUMBBELL_ROW = "Dumbbell Row"
 }
-enum class DumbbellCurlState {
-    READY,
-    LIFTING,
-    LOWERING
-}
-
-enum class SquatState {
-    READY,
-    DESCENDING,
-    ASCENDING
-}
