@@ -1,17 +1,18 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// rtGetNaN.h
-//
-// Code generation for function 'predictExercise'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * rtGetNaN.h
+ *
+ * Code generation for function 'feature_extractor_codegen'
+ *
+ */
 
 #ifndef RTGETNAN_H
 #define RTGETNAN_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
 
 #ifdef __cplusplus
@@ -25,4 +26,4 @@ extern real32_T rtGetNaNF(void);
 }
 #endif
 #endif
-// End of code generation (rtGetNaN.h)
+/* End of code generation (rtGetNaN.h) */

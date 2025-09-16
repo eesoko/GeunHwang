@@ -1,32 +1,33 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// xzsvdc.h
-//
-// Code generation for function 'xzsvdc'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * xzsvdc.h
+ *
+ * Code generation for function 'xzsvdc'
+ *
+ */
 
 #ifndef XZSVDC_H
 #define XZSVDC_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-namespace internal {
-namespace reflapack {
-int xzsvdc(array<double, 2U> &A, array<double, 2U> &U, double S_data[],
-           double V_data[], int V_size[2]);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
+           double S_data[], double V_data[], int V_size[2]);
+
+#ifdef __cplusplus
 }
-} // namespace internal
-} // namespace coder
+#endif
 
 #endif
-// End of code generation (xzsvdc.h)
+/* End of code generation (xzsvdc.h) */

@@ -1,83 +1,81 @@
+// =========================================================================
+// native-lib.cpp (최종 수정 완료)
+// =========================================================================
 #include <jni.h>
 #include <string>
 #include <vector>
-#include <android/log.h>
 
-// MATLAB Coder가 생성한 헤더 파일들을 포함합니다.
-#include "predictExercise.h"
-#include "predictExercise_types.h"
-#include "rtwtypes.h"
-#include "categorical.h"
-
+// MATLAB에서 생성된 C 코드의 헤더 파일들을 포함합니다.
+// 필요한 모든 타입 정의가 포함되도록 헤더를 추가했습니다.
 extern "C" {
+#include "feature_extractor_codegen.h"
+#include "feature_extractor_codegen_types.h" // emx... 타입 정의 포함
+#include "predict_exercise.h"
+#include "predict_exercise_initialize.h"
+#include "predict_exercise_terminate.h"
+#include "predict_exercise_types.h"
+}
 
-JNIEXPORT jstring JNICALL
-Java_com_example_geunhwang_presentation_ui_ExerciseClassifier_classify(
+
+extern "C" JNIEXPORT jstring JNICALL
+// Kotlin의 private external 함수 이름에 맞춰 Native 접미사 추가
+Java_com_example_geunhwang_presentation_ui_MainActivity_predictMotionNative(
         JNIEnv* env,
         jobject /* this */,
-        jobjectArray sensorData) {
+        jobjectArray sensorData, // 입력 1: 센서 데이터 (Nx6 크기의 2차원 배열)
+        jdouble fs) {            // 입력 2: 샘플링 주파수 (double)
 
-    __android_log_print(ANDROID_LOG_DEBUG, "GeunhwangCPP", "Real classification started!");
-
-    // 1. Kotlin의 2D Array를 C++의 2D Vector로 변환합니다.
+    // --- 1. Kotlin의 2차원 배열 -> C++ 벡터로 변환 ---
     int rows = env->GetArrayLength(sensorData);
     if (rows == 0) {
-        return env->NewStringUTF("Error:EmptyData");
+        return env->NewStringUTF("Input data is empty.");
     }
-    jfloatArray firstRow = (jfloatArray)env->GetObjectArrayElement(sensorData, 0);
+    jdoubleArray firstRow = (jdoubleArray)env->GetObjectArrayElement(sensorData, 0);
     int cols = env->GetArrayLength(firstRow);
-    env->DeleteLocalRef(firstRow);
 
-    std::vector<std::vector<double>> sensorDataVector(rows, std::vector<double>(cols));
-    for (int i = 0; i < rows; ++i) {
-        jfloatArray row = (jfloatArray)env->GetObjectArrayElement(sensorData, i);
-        jfloat* rowElements = env->GetFloatArrayElements(row, nullptr);
-        for (int j = 0; j < cols; ++j) {
-            sensorDataVector[i][j] = static_cast<double>(rowElements[j]);
-        }
-        env->ReleaseFloatArrayElements(row, rowElements, 0);
+    std::vector<double> raw_data_flat;
+    raw_data_flat.reserve(rows * cols); // 메모리 미리 할당
+
+    for (int i = 0; i < rows; i++) {
+        jdoubleArray row = (jdoubleArray)env->GetObjectArrayElement(sensorData, i);
+        double* row_elements = env->GetDoubleArrayElements(row, nullptr);
+        raw_data_flat.insert(raw_data_flat.end(), row_elements, row_elements + cols);
+        env->ReleaseDoubleArrayElements(row, row_elements, JNI_ABORT);
         env->DeleteLocalRef(row);
     }
 
-    // 2. C++ Vector를 MATLAB Coder가 이해하는 coder::array 형태로 변환합니다.
-    coder::array<double, 2U> matlabSensorData;
-    matlabSensorData.set_size(rows, cols);
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            matlabSensorData[i + rows * j] = sensorDataVector[i][j];
-        }
-    }
+    // --- 2. C 함수 호출을 위한 데이터 준비 ---
+    int raw_data_size[2] = {rows, cols};
+    double features[32]; // 특징 벡터는 고정 크기 배열
+    categorical prediction_result; // 예측 결과는 categorical 구조체
 
-    // 3. ✨✨✨ 실제 MATLAB AI 모델 함수를 호출합니다! ✨✨✨
-    coder::categorical predictedExercise_cat;
-    predictExercise(matlabSensorData, &predictedExercise_cat);
+    // --- 3. 생성된 C 함수들을 순서대로 호출 ---
+    predict_exercise_initialize();
 
-    // 4. ▼▼▼ [최종 수정] categorical 객체의 정확한 내부 구조에 접근합니다. ▼▼▼
-    std::string predictedExercise_str;
+    // 3-1. 특징 추출기 호출 (emxArray 대신 C 기본 배열 타입 사용)
+    feature_extractor_codegen(raw_data_flat.data(), raw_data_size, fs, features);
 
-    unsigned char predicted_code = predictedExercise_cat.codes;
+    // 3-2. 운동 예측 함수 호출
+    predict_exercise(features, &prediction_result);
 
-    if (predicted_code > 0 && predicted_code <= 6) {
-        coder::bounded_array<char, 18U, 2U> exerciseNameChars;
-        exerciseNameChars = predictedExercise_cat.categoryNames[predicted_code - 1].f1;
+    predict_exercise_terminate();
 
-        // 4.1. [수정] .size는 함수가 아닌 배열 변수이므로, 두 번째 요소(문자열 길이)에 접근합니다.
-        int string_length = exerciseNameChars.size[1];
-
-        // 4.2. [수정] [] 대신 .data 내부 배열에 접근합니다.
-        for (int i = 0; i < string_length; ++i) {
-            predictedExercise_str += exerciseNameChars.data[i];
-        }
+    // --- 4. C의 categorical 구조체 결과 -> Kotlin의 String으로 변환 ---
+    // 'codes'는 1부터 시작하는 인덱스이므로 -1을 해줍니다.
+    int codeIndex = prediction_result.codes - 1;
+    std::string result_str;
+    if (codeIndex >= 0 && codeIndex < 6) { // 배열 범위 확인
+        // categoryNames 배열에서 해당 인덱스의 문자열 데이터를 가져옵니다.
+        cell_wrap_0 result_cell = prediction_result.categoryNames[codeIndex];
+        result_str.assign(result_cell.f1.data, result_cell.f1.size[1]);
     } else {
-        predictedExercise_str = "Unknown";
+        result_str = "Unknown";
     }
 
-    // 5. 최종 결과를 "Exercise:결과,Reps:12" 형태로 만들어 Kotlin에 반환합니다.
-    std::string result = "Exercise:" + predictedExercise_str + ",Reps:12";
+    // --- 5. 최종 결과 문자열 반환 ---
+    // 예측된 운동 이름과 함께 임시로 횟수 "10"을 붙여서 반환합니다.
+    // 추후 C++ 코드에서 횟수 계산 로직이 추가되면 이 부분을 수정해야 합니다.
+    std::string final_output = result_str + ",10";
 
-    __android_log_print(ANDROID_LOG_DEBUG, "GeunhwangCPP", "Predicted: %s", predictedExercise_str.c_str());
-
-    return env->NewStringUTF(result.c_str());
+    return env->NewStringUTF(final_output.c_str());
 }
-
-} // extern "C"

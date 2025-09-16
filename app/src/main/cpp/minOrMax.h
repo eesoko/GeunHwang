@@ -1,33 +1,37 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// minOrMax.h
-//
-// Code generation for function 'minOrMax'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * minOrMax.h
+ *
+ * Code generation for function 'minOrMax'
+ *
+ */
 
 #ifndef MINORMAX_H
 #define MINORMAX_H
 
-// Include files
+/* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-namespace internal {
-double maximum(const array<double, 1U> &x);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-double maximum(const array<double, 1U> &x, int &idx);
+/* Function Declarations */
+double b_maximum(const emxArray_real_T *x, int *idx);
 
-double minimum(const array<double, 1U> &x);
+double maximum(const double x_data[], int x_size);
 
-} // namespace internal
-} // namespace coder
+double minimum(const double x_data[], int x_size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
-// End of code generation (minOrMax.h)
+/* End of code generation (minOrMax.h) */

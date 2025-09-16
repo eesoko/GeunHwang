@@ -1,27 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// rms.h
-//
-// Code generation for function 'rms'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * rms.h
+ *
+ * Code generation for function 'rms'
+ *
+ */
 
 #ifndef RMS_H
 #define RMS_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-double rms(const array<double, 1U> &xIn);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+double rms(const double xIn_data[], int xIn_size);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (rms.h)
+/* End of code generation (rms.h) */

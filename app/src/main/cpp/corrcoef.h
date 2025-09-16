@@ -1,28 +1,33 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// corrcoef.h
-//
-// Code generation for function 'corrcoef'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * corrcoef.h
+ *
+ * Code generation for function 'corrcoef'
+ *
+ */
 
 #ifndef CORRCOEF_H
 #define CORRCOEF_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-void corrcoef(const array<double, 1U> &x, const array<double, 1U> &varargin_1,
-              double r[4]);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+void corrcoef(const double x_data[], int x_size, const double varargin_1_data[],
+              int varargin_1_size, double r[4]);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (corrcoef.h)
+/* End of code generation (corrcoef.h) */

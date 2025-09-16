@@ -1,27 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// abs.h
-//
-// Code generation for function 'abs'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * abs.h
+ *
+ * Code generation for function 'abs'
+ *
+ */
 
 #ifndef ABS_H
 #define ABS_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-void b_abs(const array<double, 1U> &x, array<double, 1U> &y);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+int b_abs(const double x_data[], int x_size, double y_data[]);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (abs.h)
+/* End of code generation (abs.h) */

@@ -1,37 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// introsort.h
-//
-// Code generation for function 'introsort'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * introsort.h
+ *
+ * Code generation for function 'introsort'
+ *
+ */
 
 #ifndef INTROSORT_H
 #define INTROSORT_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Type Declarations
-namespace coder {
-class anonymous_function;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+void introsort(int x_data[], int xend);
+
+#ifdef __cplusplus
 }
-
-// Function Declarations
-namespace coder {
-namespace internal {
-void introsort(array<int, 1U> &x, int xend);
-
-void introsort(const anonymous_function &cmp, int x[6]);
-
-} // namespace internal
-} // namespace coder
+#endif
 
 #endif
-// End of code generation (introsort.h)
+/* End of code generation (introsort.h) */

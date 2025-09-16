@@ -1,27 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// std.h
-//
-// Code generation for function 'std'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * std.h
+ *
+ * Code generation for function 'std'
+ *
+ */
 
 #ifndef STD_H
 #define STD_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-double b_std(const array<double, 1U> &x);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+double b_std(const double x_data[], int x_size);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (std.h)
+/* End of code generation (std.h) */

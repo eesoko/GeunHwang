@@ -1,37 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// insertionsort.h
-//
-// Code generation for function 'insertionsort'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * insertionsort.h
+ *
+ * Code generation for function 'insertionsort'
+ *
+ */
 
 #ifndef INSERTIONSORT_H
 #define INSERTIONSORT_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Type Declarations
-namespace coder {
-class anonymous_function;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+void insertionsort(int x_data[], int xstart, int xend);
+
+#ifdef __cplusplus
 }
-
-// Function Declarations
-namespace coder {
-namespace internal {
-void insertionsort(array<int, 1U> &x, int xstart, int xend);
-
-void insertionsort(int x[6], const anonymous_function &cmp);
-
-} // namespace internal
-} // namespace coder
+#endif
 
 #endif
-// End of code generation (insertionsort.h)
+/* End of code generation (insertionsort.h) */

@@ -1,17 +1,18 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// rtGetInf.h
-//
-// Code generation for function 'predictExercise'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * rtGetInf.h
+ *
+ * Code generation for function 'feature_extractor_codegen'
+ *
+ */
 
 #ifndef RTGETINF_H
 #define RTGETINF_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
 
 #ifdef __cplusplus
@@ -27,4 +28,4 @@ extern real32_T rtGetMinusInfF(void);
 }
 #endif
 #endif
-// End of code generation (rtGetInf.h)
+/* End of code generation (rtGetInf.h) */

@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
@@ -20,17 +22,35 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GeunHwangTheme {
-                val viewModel: MainViewModel = viewModel()
+                // ViewModel을 생성할 때 MainActivity의 인스턴스(this)를 전달하는 Factory를 사용합니다.
+                val viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory(this))
                 WearAppV2Navigation(viewModel = viewModel)
             }
         }
     }
+
+    // --- 수정된 부분: internal -> private ---
+    // C++ 네이티브 함수를 선언합니다. private으로 하여 이름 변경 문제를 방지합니다.
+    // 이 함수는 ViewModel을 통해서만 호출될 것입니다.
+    internal fun predictMotion(sensorData: Array<DoubleArray>, fs: Double): String {
+        return predictMotionNative(sensorData, fs)
+    }
+
+    private external fun predictMotionNative(sensorData: Array<DoubleArray>, fs: Double): String
+
+    // 네이티브 라이브러리를 로드합니다.
+    companion object {
+        init {
+            System.loadLibrary("native-lib")
+        }
+    }
 }
+
 
 @Composable
 fun WearAppV2Navigation(viewModel: MainViewModel) {
     val navController = rememberSwipeDismissableNavController()
-    // ... (state 관찰은 기존과 동일) ...
+    // ... (UI 상태 관찰 코드는 기존과 동일) ...
     val uiState by viewModel.uiState.collectAsState()
     val totalWorkoutTime by viewModel.totalWorkoutTime.collectAsState()
     val restTime by viewModel.restTime.collectAsState()
@@ -48,12 +68,10 @@ fun WearAppV2Navigation(viewModel: MainViewModel) {
                     viewModel.loadLogbookData()
                     navController.navigate("logbook_screen")
                 },
-                // --- ▼▼▼ 데이터 수집 버튼에 기능 연결 ▼▼▼ ---
                 onDataCollectionClick = { navController.navigate("collection_selection_screen") }
             )
         }
 
-        // --- (workout_screen, logbook_screen은 기존과 동일) ---
         composable("workout_screen") {
             DisposableEffect(Unit) {
                 viewModel.startWorkoutSession()
@@ -79,10 +97,8 @@ fun WearAppV2Navigation(viewModel: MainViewModel) {
             LogbookScreen(entries = logbookEntries)
         }
 
-        // --- ▼▼▼ 데이터 수집을 위한 새로운 화면 경로 추가 ▼▼▼ ---
         composable("collection_selection_screen") {
             ExerciseSelectionScreen { exerciseName ->
-                // 운동 선택 시, ViewModel에 로깅 시작을 알리고 로깅 화면으로 이동
                 viewModel.startDataLogging(exerciseName)
                 navController.navigate("logging_screen/$exerciseName")
             }
@@ -93,7 +109,6 @@ fun WearAppV2Navigation(viewModel: MainViewModel) {
             LoggingScreen(
                 exerciseName = exerciseName,
                 onStopLoggingClick = {
-                    // 기록 중지 시, ViewModel에 로깅 중지를 알리고 이전 화면으로 복귀
                     viewModel.stopDataLogging()
                     navController.popBackStack()
                 }

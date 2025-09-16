@@ -1,27 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// gradient.h
-//
-// Code generation for function 'gradient'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * gradient.h
+ *
+ * Code generation for function 'gradient'
+ *
+ */
 
 #ifndef GRADIENT_H
 #define GRADIENT_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-void gradient(const array<double, 1U> &x, array<double, 1U> &varargout_1);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+int gradient(const double x_data[], int x_size, double varargout_1_data[]);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (gradient.h)
+/* End of code generation (gradient.h) */

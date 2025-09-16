@@ -1,29 +1,32 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// sort.h
-//
-// Code generation for function 'sort'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * sort.h
+ *
+ * Code generation for function 'sort'
+ *
+ */
 
 #ifndef SORT_H
 #define SORT_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-namespace internal {
-void sort(array<double, 1U> &x);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+void sort(double x_data[], const int *x_size);
+
+#ifdef __cplusplus
 }
-} // namespace coder
+#endif
 
 #endif
-// End of code generation (sort.h)
+/* End of code generation (sort.h) */

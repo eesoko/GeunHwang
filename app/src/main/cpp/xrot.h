@@ -1,30 +1,34 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// xrot.h
-//
-// Code generation for function 'xrot'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * xrot.h
+ *
+ * Code generation for function 'xrot'
+ *
+ */
 
 #ifndef XROT_H
 #define XROT_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-namespace internal {
-namespace blas {
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Function Declarations */
+void b_xrot(int n, double x_data[], int ix0, int iy0, double c, double s);
+
 void xrot(double x[9], int ix0, int iy0, double c, double s);
 
+#ifdef __cplusplus
 }
-} // namespace internal
-} // namespace coder
+#endif
 
 #endif
-// End of code generation (xrot.h)
+/* End of code generation (xrot.h) */

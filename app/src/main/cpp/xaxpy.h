@@ -1,39 +1,38 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// xaxpy.h
-//
-// Code generation for function 'xaxpy'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * xaxpy.h
+ *
+ * Code generation for function 'xaxpy'
+ *
+ */
 
 #ifndef XAXPY_H
 #define XAXPY_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-namespace internal {
-namespace blas {
-void xaxpy(int n, double a, const array<double, 2U> &x, int ix0,
-           array<double, 1U> &y);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void xaxpy(int n, double a, const array<double, 1U> &x, array<double, 2U> &y,
-           int iy0);
+/* Function Declarations */
+void b_xaxpy(double a, double y[9], int iy0);
 
-void xaxpy(int n, double a, int ix0, array<double, 2U> &y, int iy0);
+void c_xaxpy(int n, double a, const double x_data[], int ix0, double y_data[]);
 
-void xaxpy(double a, double y[9], int iy0);
+void d_xaxpy(int n, double a, const double x_data[], double y_data[], int iy0);
 
-} // namespace blas
-} // namespace internal
-} // namespace coder
+void xaxpy(int n, double a, int ix0, double y_data[], int iy0);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
-// End of code generation (xaxpy.h)
+/* End of code generation (xaxpy.h) */

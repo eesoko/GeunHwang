@@ -1,29 +1,34 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// sum.h
-//
-// Code generation for function 'sum'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * sum.h
+ *
+ * Code generation for function 'sum'
+ *
+ */
 
 #ifndef SUM_H
 #define SUM_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-void sum(const array<double, 2U> &x, array<double, 1U> &y);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-double sum(const double x_data[], int x_size);
+/* Function Declarations */
+double b_sum(const double x_data[], int x_size);
 
-} // namespace coder
+int sum(const double x_data[], const int x_size[2], double y_data[]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
-// End of code generation (sum.h)
+/* End of code generation (sum.h) */

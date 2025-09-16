@@ -1,29 +1,34 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// pca.h
-//
-// Code generation for function 'pca'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * pca.h
+ *
+ * Code generation for function 'pca'
+ *
+ */
 
 #ifndef PCA_H
 #define PCA_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-int pca(const array<double, 2U> &x, double varargout_1_data[],
-        int varargout_1_size[2], array<double, 2U> &varargout_2,
-        double varargout_3_data[]);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+int pca(const double x_data[], const int x_size[2], double varargout_1_data[],
+        int varargout_1_size[2], double varargout_2_data[],
+        int varargout_2_size[2], double varargout_3_data[]);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (pca.h)
+/* End of code generation (pca.h) */

@@ -1,28 +1,34 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// eml_setop.h
-//
-// Code generation for function 'eml_setop'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * eml_setop.h
+ *
+ * Code generation for function 'eml_setop'
+ *
+ */
 
 #ifndef EML_SETOP_H
 #define EML_SETOP_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-void do_vectors(const array<int, 1U> &a, const array<int, 1U> &b,
-                array<int, 1U> &c, array<int, 1U> &ia, array<int, 1U> &ib);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+int do_vectors(const int a_data[], int a_size, const int b_data[], int b_size,
+               int c_data[], int ia_data[], int *ia_size, int ib_data[],
+               int *ib_size);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
-// End of code generation (eml_setop.h)
+/* End of code generation (eml_setop.h) */

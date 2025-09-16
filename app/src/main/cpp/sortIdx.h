@@ -1,31 +1,33 @@
-//
-// Academic License - for use in teaching, academic research, and meeting
-// course requirements at degree granting institutions only.  Not for
-// government, commercial, or other organizational use.
-//
-// sortIdx.h
-//
-// Code generation for function 'sortIdx'
-//
+/*
+ * Academic License - for use in teaching, academic research, and meeting
+ * course requirements at degree granting institutions only.  Not for
+ * government, commercial, or other organizational use.
+ *
+ * sortIdx.h
+ *
+ * Code generation for function 'sortIdx'
+ *
+ */
 
 #ifndef SORTIDX_H
 #define SORTIDX_H
 
-// Include files
+/* Include files */
 #include "rtwtypes.h"
-#include "coder_array.h"
-#include <cstddef>
-#include <cstdlib>
+#include <stddef.h>
+#include <stdlib.h>
 
-// Function Declarations
-namespace coder {
-namespace internal {
-void merge_block(array<int, 1U> &idx, array<double, 1U> &x, int offset, int n,
-                 int preSortLevel, array<int, 1U> &iwork,
-                 array<double, 1U> &xwork);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/* Function Declarations */
+void merge(int idx_data[], double x_data[], int offset, int np, int nq,
+           int iwork_data[], double xwork_data[]);
+
+#ifdef __cplusplus
 }
-} // namespace coder
+#endif
 
 #endif
-// End of code generation (sortIdx.h)
+/* End of code generation (sortIdx.h) */
