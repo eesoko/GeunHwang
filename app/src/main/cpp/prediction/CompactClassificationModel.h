@@ -13,7 +13,7 @@
 #define COMPACTCLASSIFICATIONMODEL_H
 
 /* Include files */
-#include "predict_exercise_types.h"
+#include "predict_exercise_internal_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -23,10 +23,13 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-unsigned char
-c_CompactClassificationModel_ma(const double obj_Prior[6],
-                                const double scores[6],
-                                cell_wrap_0 labels_categoryNames[6]);
+void c_CompactClassificationModel_Co(c_classreg_learning_classif_Com *obj);
+
+int c_CompactClassificationModel_mi(const double obj_Cost[36],
+                                    const double scoresIn_data[],
+                                    const int scoresIn_size[2],
+                                    double classnum_data[], double cost_data[],
+                                    int cost_size[2]);
 
 #ifdef __cplusplus
 }

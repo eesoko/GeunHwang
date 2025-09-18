@@ -151,7 +151,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
     costab1q_data = costab1q->data;
     costab1q_data[0] = 1.0;
     acoef = (int)((unsigned int)b_n2 >> 1) - 1;
-    if (acoef + 1 < 1200) {
+    if (acoef + 1 < 1600) {
       for (b_k = 0; b_k <= acoef; b_k++) {
         costab1q_data[b_k + 1] = cos(f * ((double)b_k + 1.0));
       }
@@ -163,7 +163,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
       }
     }
     n2 = acoef + 2;
-    if ((b_n2 - acoef) - 2 < 1200) {
+    if ((b_n2 - acoef) - 2 < 1600) {
       for (c_k = n2; c_k < b_n2; c_k++) {
         costab1q_data[c_k] = sin(f * (double)(b_n2 - c_k));
       }
@@ -197,7 +197,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
       sintabinv->size[1] = n2 + 1;
       emxEnsureCapacity_real_T(sintabinv, acoef);
       Px_data = sintabinv->data;
-      acoef = (costab1q->size[1] - 1 < 1200);
+      acoef = (costab1q->size[1] - 1 < 1600);
       if (acoef) {
         for (f_k = 0; f_k < n; f_k++) {
           Px_data[f_k + 1] = costab1q_data[(n - f_k) - 1];
@@ -226,7 +226,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
           w_data[g_k + 1] = -costab1q_data[(n - g_k) - 1];
         }
       }
-      if ((n2 - costab1q->size[1]) + 1 < 1200) {
+      if ((n2 - costab1q->size[1]) + 1 < 1600) {
         for (h_k = loop_ub; h_k <= n2; h_k++) {
           select_data[h_k] = -costab1q_data[n2 - h_k];
           w_data[h_k] = -costab1q_data[h_k - n];
@@ -258,7 +258,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
       w_data = sintab->data;
       select_data[0] = 1.0;
       w_data[0] = 0.0;
-      if (costab1q->size[1] - 1 < 1200) {
+      if (costab1q->size[1] - 1 < 1600) {
         for (d_k = 0; d_k < n2; d_k++) {
           select_data[d_k + 1] = costab1q_data[d_k + 1];
           w_data[d_k + 1] = -costab1q_data[(n2 - d_k) - 1];
@@ -272,7 +272,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
         }
       }
       acoef = costab1q->size[1];
-      if ((b_n2 - costab1q->size[1]) + 1 < 1200) {
+      if ((b_n2 - costab1q->size[1]) + 1 < 1600) {
         for (e_k = acoef; e_k <= b_n2; e_k++) {
           select_data[e_k] = -costab1q_data[b_n2 - e_k];
           w_data[e_k] = -costab1q_data[e_k - n2];
@@ -356,7 +356,7 @@ void periodogram(const double x_data[], int x_size, double varargin_3,
   emxEnsureCapacity_real_T(Sxx, acoef);
   w_data = Sxx->data;
   acoef = Xx->size[0];
-  if (Xx->size[0] < 1200) {
+  if (Xx->size[0] < 1600) {
     for (i = 0; i < n2; i++) {
       f = Xx_data[i].re;
       freq_res = Xx_data[i].im;

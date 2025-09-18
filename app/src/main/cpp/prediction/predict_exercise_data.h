@@ -20,6 +20,13 @@
 
 /* Variable Declarations */
 extern omp_nest_lock_t predict_exercise_nestLockGlobal;
+extern const char cv[13];
+extern const char cv1[14];
+extern const char cv2[18];
+extern const double dv[6];
+extern const signed char iv[36];
+extern const char cv3[128];
+extern const char cv4[15];
 extern boolean_T isInitialized_predict_exercise;
 
 #endif

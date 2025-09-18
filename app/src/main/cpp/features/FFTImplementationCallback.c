@@ -278,7 +278,7 @@ static void d_FFTImplementationCallback_doH(
   costab1q_data = costab1q->data;
   costab1q_data[0] = 1.0;
   nd2 = (int)((unsigned int)n >> 1) - 1;
-  if (nd2 + 1 < 1200) {
+  if (nd2 + 1 < 1600) {
     for (k = 0; k <= nd2; k++) {
       costab1q_data[k + 1] = cos(twid_re * ((double)k + 1.0));
     }
@@ -290,7 +290,7 @@ static void d_FFTImplementationCallback_doH(
     }
   }
   hszCostab = nd2 + 2;
-  if ((n - nd2) - 2 < 1200) {
+  if ((n - nd2) - 2 < 1600) {
     for (b_k = hszCostab; b_k < n; b_k++) {
       costab1q_data[b_k] = sin(twid_re * (double)(n - b_k));
     }
@@ -318,7 +318,7 @@ static void d_FFTImplementationCallback_doH(
   b_sintab_data = b_sintab->data;
   b_costab_data[0] = 1.0;
   b_sintab_data[0] = 0.0;
-  if (costab1q->size[1] - 1 < 1200) {
+  if (costab1q->size[1] - 1 < 1600) {
     for (c_k = 0; c_k < n; c_k++) {
       b_costab_data[c_k + 1] = costab1q_data[c_k + 1];
       b_sintab_data[c_k + 1] = -costab1q_data[(n - c_k) - 1];
@@ -332,7 +332,7 @@ static void d_FFTImplementationCallback_doH(
     }
   }
   hszCostab = costab1q->size[1];
-  if ((n2 - costab1q->size[1]) + 1 < 1200) {
+  if ((n2 - costab1q->size[1]) + 1 < 1600) {
     for (d_k = hszCostab; d_k <= n2; d_k++) {
       b_costab_data[d_k] = -costab1q_data[n2 - d_k];
       b_sintab_data[d_k] = -costab1q_data[d_k - n];
@@ -369,7 +369,7 @@ static void d_FFTImplementationCallback_doH(
   hsintabinv->size[1] = hszCostab;
   emxEnsureCapacity_real_T(hsintabinv, nd2);
   hsintabinv_data = hsintabinv->data;
-  if (hszCostab < 1200) {
+  if (hszCostab < 1600) {
     for (b_i = 0; b_i < hszCostab; b_i++) {
       c_i = ((b_i + 1) << 1) - 2;
       costab1q_data[b_i] = costab_data[c_i];
@@ -549,7 +549,7 @@ static void d_FFTImplementationCallback_doH(
   fv_data = fv->data;
   emxFree_real_T(&costab1q);
   emxFree_real_T(&hsintab);
-  if (fy->size[0] < 1200) {
+  if (fy->size[0] < 1600) {
     for (i1 = 0; i1 < b_nfft; i1++) {
       twid_re = fy_data[i1].re;
       twid_im = fv_data[i1].im;
@@ -579,7 +579,7 @@ static void d_FFTImplementationCallback_doH(
   if (fv->size[0] > 1) {
     twid_re = 1.0 / (double)fv->size[0];
     nd2 = fv->size[0];
-    if (fv->size[0] < 1200) {
+    if (fv->size[0] < 1600) {
       for (i2 = 0; i2 < nd2; i2++) {
         fv_data[i2].re *= twid_re;
         fv_data[i2].im *= twid_re;
@@ -594,7 +594,7 @@ static void d_FFTImplementationCallback_doH(
     }
   }
   hszCostab = wwc->size[0];
-  if ((wwc->size[0] - hnRows) + 1 < 1200) {
+  if ((wwc->size[0] - hnRows) + 1 < 1600) {
     for (f_k = hnRows; f_k <= hszCostab; f_k++) {
       twid_re = wwc_data[f_k - 1].re;
       twid_im = fv_data[f_k - 1].im;
@@ -619,7 +619,7 @@ static void d_FFTImplementationCallback_doH(
     }
   }
   emxFree_creal_T(&fv);
-  if (hnRows < 1200) {
+  if (hnRows < 1600) {
     for (e_i = 0; e_i < hnRows; e_i++) {
       double b_ytmp_re_tmp;
       double ytmp_im;
@@ -755,7 +755,7 @@ void c_FFTImplementationCallback_doH(const double x_data[], int x_size,
   hsintab->size[1] = hszCostab;
   emxEnsureCapacity_real_T(hsintab, istart);
   hsintab_data = hsintab->data;
-  if (hszCostab < 1200) {
+  if (hszCostab < 1600) {
     for (i = 0; i < hszCostab; i++) {
       b_i = ((i + 1) << 1) - 2;
       hcostab_data[i] = costab_data[b_i];
@@ -1203,7 +1203,7 @@ void c_FFTImplementationCallback_dob(const double x_data[], int x_size,
     c_FFTImplementationCallback_r2b(wwc, n2blue, costab, sintab, fv);
     fv_data = fv->data;
     istart = fy->size[0];
-    if (fy->size[0] < 1200) {
+    if (fy->size[0] < 1600) {
       for (b_i = 0; b_i < istart; b_i++) {
         twid_re = fy_data[b_i].re;
         twid_im = fv_data[b_i].im;
@@ -1230,7 +1230,7 @@ void c_FFTImplementationCallback_dob(const double x_data[], int x_size,
     if (fv->size[0] > 1) {
       twid_re = 1.0 / (double)fv->size[0];
       istart = fv->size[0];
-      if (fv->size[0] < 1200) {
+      if (fv->size[0] < 1600) {
         for (i1 = 0; i1 < istart; i1++) {
           fv_data[i1].re *= twid_re;
           fv_data[i1].im *= twid_re;
@@ -1245,7 +1245,7 @@ void c_FFTImplementationCallback_dob(const double x_data[], int x_size,
       }
     }
     j = wwc->size[0];
-    if ((wwc->size[0] - nfft) + 1 < 1200) {
+    if ((wwc->size[0] - nfft) + 1 < 1600) {
       for (c_k = nfft; c_k <= j; c_k++) {
         twid_re = wwc_data[c_k - 1].re;
         twid_im = fv_data[c_k - 1].im;

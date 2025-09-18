@@ -3,31 +3,29 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * Poly.h
+ * rtGetInf.h
  *
- * Code generation for function 'Poly'
+ * Code generation for function 'predict_exercise'
  *
  */
 
-#ifndef POLY_H
-#define POLY_H
+#ifndef RTGETINF_H
+#define RTGETINF_H
 
 /* Include files */
 #include "rtwtypes.h"
-#include <stddef.h>
-#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Function Declarations */
-void Poly(const double svT_data[], const int svT_size[2], const double x[32],
-          double kernelProduct_data[], int kernelProduct_size[2]);
+extern real_T rtGetInf(void);
+extern real32_T rtGetInfF(void);
+extern real_T rtGetMinusInf(void);
+extern real32_T rtGetMinusInfF(void);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-/* End of code generation (Poly.h) */
+/* End of code generation (rtGetInf.h) */

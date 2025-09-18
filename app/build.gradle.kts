@@ -15,12 +15,19 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // ▼▼▼ [추가] C++ 빌드 설정을 CMake에 연결합니다. ▼▼▼
         externalNativeBuild {
             cmake {
                 cppFlags("")
             }
         }
+
+        // --- ▼▼▼ 이 부분이 추가되었습니다 ▼▼▼ ---
+        ndk {
+            // 앱이 지원할 CPU 아키텍처 목록을 지정합니다.
+            // 에뮬레이터는 'x86_64', 실제 기기는 'arm64-v8a'를 사용합니다.
+            abiFilters += listOf("x86_64", "arm64-v8a")
+        }
+        // --- ▲▲▲ ---
     }
 
     buildTypes {
@@ -43,7 +50,7 @@ android {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
-    // ▼▼▼ [추가] C++ 코드를 빌드할 경로를 지정합니다. ▼▼▼
+    // C++ 코드를 빌드할 CMakeLists.txt 경로를 지정합니다.
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")

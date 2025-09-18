@@ -37,7 +37,7 @@ double geomean(const emxArray_real_T *x)
   emxEnsureCapacity_real_T(b_x, b_loop_ub);
   b_x_data = b_x->data;
   b_loop_ub = x->size[0];
-  if (x->size[0] < 1200) {
+  if (x->size[0] < 1600) {
     for (k = 0; k < loop_ub; k++) {
       b_x_data[k] = log(x_data[k]);
     }

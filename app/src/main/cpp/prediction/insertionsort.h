@@ -3,17 +3,17 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * ClassificationECOC.h
+ * insertionsort.h
  *
- * Code generation for function 'ClassificationECOC'
+ * Code generation for function 'insertionsort'
  *
  */
 
-#ifndef CLASSIFICATIONECOC_H
-#define CLASSIFICATIONECOC_H
+#ifndef INSERTIONSORT_H
+#define INSERTIONSORT_H
 
 /* Include files */
-#include "predict_exercise_types.h"
+#include "predict_exercise_internal_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -23,12 +23,11 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-unsigned char ClassificationECOC_predict(const double Xin[32],
-                                         cell_wrap_0 labels_categoryNames[6]);
+void insertionsort(int x[6], const cell_wrap_3 cmp_workspace_c[6]);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/* End of code generation (ClassificationECOC.h) */
+/* End of code generation (insertionsort.h) */
