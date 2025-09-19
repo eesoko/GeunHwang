@@ -17,7 +17,7 @@
 #include "rt_nonfinite.h"
 
 /* Function Definitions */
-void predict_exercise(const double input_features[32])
+int predict_exercise(const double input_features[32])
 {
   if (!isInitialized_predict_exercise) {
     predict_exercise_initialize();

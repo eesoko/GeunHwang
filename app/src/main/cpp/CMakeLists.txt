@@ -35,6 +35,8 @@ add_library(
 # 'native-lib'를 빌드할 때, 현재 CMakeLists.txt가 있는 폴더(즉, 'cpp' 폴더)를
 # 헤더 검색 경로에 추가합니다.
 target_include_directories(native-lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(native-lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/features)
+target_include_directories(native-lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/prediction)
 # --- ▲▲▲ ---
 
 # 로그 라이브러리를 찾습니다.

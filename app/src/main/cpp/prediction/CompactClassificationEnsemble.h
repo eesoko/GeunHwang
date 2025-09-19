@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void c_CompactClassificationEnsemble(const double Xin[32]);
+int c_CompactClassificationEnsemble(const double Xin[32]);
 
 #ifdef __cplusplus
 }

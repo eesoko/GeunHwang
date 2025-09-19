@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern void predict_exercise(const double input_features[32]);
+extern int predict_exercise(const double input_features[32]);
 
 #ifdef __cplusplus
 }

@@ -19,51 +19,28 @@
 #include "strtrim.h"
 
 /* Function Definitions */
-void c_CompactClassificationEnsemble(const double Xin[32])
+int c_CompactClassificationEnsemble(const double Xin[32])
 {
-  static const char b_cv1[7] = {'P', 'u', 's', 'h', ' ', 'U', 'p'};
-  static const char b_cv[5] = {'L', 'u', 'n', 'g', 'e'};
-  static const char b_cv2[5] = {'S', 'q', 'u', 'a', 't'};
-  cell_wrap_3 names[6];
-  cell_wrap_3 rv[6];
-  emxArray_cell_wrap_3_6 r;
-  double unusedExpr[6];
-  int i;
-  CompactEnsemble_ensemblePredict(Xin, unusedExpr);
-  names[0].f1.size[0] = 1;
-  names[0].f1.size[1] = 13;
-  for (i = 0; i < 13; i++) {
-    names[0].f1.data[i] = cv[i];
-  }
-  names[1].f1.size[0] = 1;
-  names[1].f1.size[1] = 5;
-  for (i = 0; i < 5; i++) {
-    names[1].f1.data[i] = b_cv[i];
-  }
-  names[2].f1.size[0] = 1;
-  names[2].f1.size[1] = 14;
-  for (i = 0; i < 14; i++) {
-    names[2].f1.data[i] = cv1[i];
-  }
-  names[3].f1.size[0] = 1;
-  names[3].f1.size[1] = 7;
-  for (i = 0; i < 7; i++) {
-    names[3].f1.data[i] = b_cv1[i];
-  }
-  names[4].f1.size[0] = 1;
-  names[4].f1.size[1] = 18;
-  for (i = 0; i < 18; i++) {
-    names[4].f1.data[i] = cv2[i];
-  }
-  names[5].f1.size[0] = 1;
-  names[5].f1.size[1] = 5;
-  for (i = 0; i < 5; i++) {
-    names[5].f1.data[i] = b_cv2[i];
-  }
-  for (i = 0; i < 6; i++) {
-    strtrim(names[i].f1.data, names[i].f1.size, rv[i].f1.data, rv[i].f1.size);
-  }
-  b_cellstr_unique(rv, r.data);
+    // --- ▼▼▼ 이 부분이 핵심 수정 내용입니다. ▼▼▼
+    double scores[6]; // 'unusedExpr' 대신 'scores'라는 이름으로 변경
+    int i;
+    int max_index = 0;
+    double max_score = -1.0;
+
+    // C 함수를 호출하여 6개 클래스에 대한 예측 점수를 얻습니다.
+    CompactEnsemble_ensemblePredict(Xin, scores);
+
+    // 가장 높은 점수를 가진 클래스의 인덱스를 찾습니다.
+    for (i = 0; i < 6; i++) {
+        if (scores[i] > max_score) {
+            max_score = scores[i];
+            max_index = i;
+        }
+    }
+
+    // 가장 높은 점수의 인덱스를 반환합니다. (0~5 사이의 값)
+    return max_index;
+    // --- ▲▲▲ 여기까지가 핵심 수정 내용입니다. ▲▲▲
 }
 
 /* End of code generation (CompactClassificationEnsemble.c) */
