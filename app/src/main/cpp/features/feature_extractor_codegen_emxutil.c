@@ -17,6 +17,45 @@
 #include <string.h>
 
 /* Function Definitions */
+void emxEnsureCapacity_boolean_T(emxArray_boolean_T *emxArray, int oldNumel)
+{
+  int i;
+  int newNumel;
+  void *newData;
+  if (oldNumel < 0) {
+    oldNumel = 0;
+  }
+  newNumel = 1;
+  for (i = 0; i < emxArray->numDimensions; i++) {
+    newNumel *= emxArray->size[i];
+  }
+  if (newNumel > emxArray->allocatedSize) {
+    int newCapacity;
+    newCapacity = emxArray->allocatedSize;
+    if (newCapacity < 16) {
+      newCapacity = 16;
+    }
+    while (newCapacity < newNumel) {
+      if (newCapacity > 1073741823) {
+        newCapacity = MAX_int32_T;
+      } else {
+        newCapacity *= 2;
+      }
+    }
+    newData = malloc((unsigned int)newCapacity * sizeof(boolean_T));
+    if (emxArray->data != NULL) {
+      memcpy(newData, emxArray->data,
+             sizeof(boolean_T) * (unsigned int)oldNumel);
+      if (emxArray->canFreeData) {
+        free(emxArray->data);
+      }
+    }
+    emxArray->data = (boolean_T *)newData;
+    emxArray->allocatedSize = newCapacity;
+    emxArray->canFreeData = true;
+  }
+}
+
 void emxEnsureCapacity_creal_T(emxArray_creal_T *emxArray, int oldNumel)
 {
   int i;
@@ -131,7 +170,7 @@ void emxEnsureCapacity_real_T(emxArray_real_T *emxArray, int oldNumel)
   }
 }
 
-void emxEnsureCapacity_uint8_T(emxArray_uint8_T *emxArray, int oldNumel)
+void emxEnsureCapacity_uint32_T(emxArray_uint32_T *emxArray, int oldNumel)
 {
   int i;
   int newNumel;
@@ -156,17 +195,30 @@ void emxEnsureCapacity_uint8_T(emxArray_uint8_T *emxArray, int oldNumel)
         newCapacity *= 2;
       }
     }
-    newData = malloc((unsigned int)newCapacity * sizeof(unsigned char));
+    newData = malloc((unsigned int)newCapacity * sizeof(unsigned int));
     if (emxArray->data != NULL) {
       memcpy(newData, emxArray->data,
-             sizeof(unsigned char) * (unsigned int)oldNumel);
+             sizeof(unsigned int) * (unsigned int)oldNumel);
       if (emxArray->canFreeData) {
         free(emxArray->data);
       }
     }
-    emxArray->data = (unsigned char *)newData;
+    emxArray->data = (unsigned int *)newData;
     emxArray->allocatedSize = newCapacity;
     emxArray->canFreeData = true;
+  }
+}
+
+void emxFree_boolean_T(emxArray_boolean_T **pEmxArray)
+{
+  if (*pEmxArray != (emxArray_boolean_T *)NULL) {
+    if (((*pEmxArray)->data != (boolean_T *)NULL) &&
+        (*pEmxArray)->canFreeData) {
+      free((*pEmxArray)->data);
+    }
+    free((*pEmxArray)->size);
+    free(*pEmxArray);
+    *pEmxArray = (emxArray_boolean_T *)NULL;
   }
 }
 
@@ -206,16 +258,32 @@ void emxFree_real_T(emxArray_real_T **pEmxArray)
   }
 }
 
-void emxFree_uint8_T(emxArray_uint8_T **pEmxArray)
+void emxFree_uint32_T(emxArray_uint32_T **pEmxArray)
 {
-  if (*pEmxArray != (emxArray_uint8_T *)NULL) {
-    if (((*pEmxArray)->data != (unsigned char *)NULL) &&
+  if (*pEmxArray != (emxArray_uint32_T *)NULL) {
+    if (((*pEmxArray)->data != (unsigned int *)NULL) &&
         (*pEmxArray)->canFreeData) {
       free((*pEmxArray)->data);
     }
     free((*pEmxArray)->size);
     free(*pEmxArray);
-    *pEmxArray = (emxArray_uint8_T *)NULL;
+    *pEmxArray = (emxArray_uint32_T *)NULL;
+  }
+}
+
+void emxInit_boolean_T(emxArray_boolean_T **pEmxArray, int numDimensions)
+{
+  emxArray_boolean_T *emxArray;
+  int i;
+  *pEmxArray = (emxArray_boolean_T *)malloc(sizeof(emxArray_boolean_T));
+  emxArray = *pEmxArray;
+  emxArray->data = (boolean_T *)NULL;
+  emxArray->numDimensions = numDimensions;
+  emxArray->size = (int *)malloc(sizeof(int) * (unsigned int)numDimensions);
+  emxArray->allocatedSize = 0;
+  emxArray->canFreeData = true;
+  for (i = 0; i < numDimensions; i++) {
+    emxArray->size[i] = 0;
   }
 }
 
@@ -264,20 +332,17 @@ void emxInit_real_T(emxArray_real_T **pEmxArray, int numDimensions)
   }
 }
 
-void emxInit_uint8_T(emxArray_uint8_T **pEmxArray)
+void emxInit_uint32_T(emxArray_uint32_T **pEmxArray)
 {
-  emxArray_uint8_T *emxArray;
-  int i;
-  *pEmxArray = (emxArray_uint8_T *)malloc(sizeof(emxArray_uint8_T));
+  emxArray_uint32_T *emxArray;
+  *pEmxArray = (emxArray_uint32_T *)malloc(sizeof(emxArray_uint32_T));
   emxArray = *pEmxArray;
-  emxArray->data = (unsigned char *)NULL;
-  emxArray->numDimensions = 2;
-  emxArray->size = (int *)malloc(sizeof(int) * 2U);
+  emxArray->data = (unsigned int *)NULL;
+  emxArray->numDimensions = 1;
+  emxArray->size = (int *)malloc(sizeof(int));
   emxArray->allocatedSize = 0;
   emxArray->canFreeData = true;
-  for (i = 0; i < 2; i++) {
-    emxArray->size[i] = 0;
-  }
+  emxArray->size[0] = 0;
 }
 
 /* End of code generation (feature_extractor_codegen_emxutil.c) */

@@ -11,6 +11,7 @@
 
 /* Include files */
 #include "xnrm2.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include <math.h>
 
@@ -39,10 +40,12 @@ double b_xnrm2(const double x[3])
   return scale * sqrt(y);
 }
 
-double xnrm2(int n, const double x_data[], int ix0)
+double xnrm2(int n, const emxArray_real_T *x, int ix0)
 {
+  const double *x_data;
   double y;
   int k;
+  x_data = x->data;
   y = 0.0;
   if (n >= 1) {
     if (n == 1) {

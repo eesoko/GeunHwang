@@ -76,15 +76,19 @@ double b_maximum(const emxArray_real_T *x, int *idx)
   return ex;
 }
 
-double maximum(const double x_data[], int x_size)
+double maximum(const emxArray_real_T *x)
 {
+  const double *x_data;
   double ex;
   int b_k;
-  if (x_size <= 2) {
-    if (x_size == 1) {
+  int last;
+  x_data = x->data;
+  last = x->size[0];
+  if (x->size[0] <= 2) {
+    if (x->size[0] == 1) {
       ex = x_data[0];
     } else {
-      ex = x_data[x_size - 1];
+      ex = x_data[x->size[0] - 1];
       if ((!(x_data[0] < ex)) && ((!rtIsNaN(x_data[0])) || rtIsNaN(ex))) {
         ex = x_data[0];
       }
@@ -99,7 +103,7 @@ double maximum(const double x_data[], int x_size)
       idx = 0;
       k = 2;
       exitg1 = false;
-      while ((!exitg1) && (k <= x_size)) {
+      while ((!exitg1) && (k <= last)) {
         if (!rtIsNaN(x_data[k - 1])) {
           idx = k;
           exitg1 = true;
@@ -113,7 +117,7 @@ double maximum(const double x_data[], int x_size)
     } else {
       ex = x_data[idx - 1];
       idx++;
-      for (b_k = idx; b_k <= x_size; b_k++) {
+      for (b_k = idx; b_k <= last; b_k++) {
         double d;
         d = x_data[b_k - 1];
         if (ex < d) {
@@ -125,15 +129,19 @@ double maximum(const double x_data[], int x_size)
   return ex;
 }
 
-double minimum(const double x_data[], int x_size)
+double minimum(const emxArray_real_T *x)
 {
+  const double *x_data;
   double ex;
   int b_k;
-  if (x_size <= 2) {
-    if (x_size == 1) {
+  int last;
+  x_data = x->data;
+  last = x->size[0];
+  if (x->size[0] <= 2) {
+    if (x->size[0] == 1) {
       ex = x_data[0];
     } else {
-      ex = x_data[x_size - 1];
+      ex = x_data[x->size[0] - 1];
       if ((!(x_data[0] > ex)) && ((!rtIsNaN(x_data[0])) || rtIsNaN(ex))) {
         ex = x_data[0];
       }
@@ -148,7 +156,7 @@ double minimum(const double x_data[], int x_size)
       idx = 0;
       k = 2;
       exitg1 = false;
-      while ((!exitg1) && (k <= x_size)) {
+      while ((!exitg1) && (k <= last)) {
         if (!rtIsNaN(x_data[k - 1])) {
           idx = k;
           exitg1 = true;
@@ -162,7 +170,7 @@ double minimum(const double x_data[], int x_size)
     } else {
       ex = x_data[idx - 1];
       idx++;
-      for (b_k = idx; b_k <= x_size; b_k++) {
+      for (b_k = idx; b_k <= last; b_k++) {
         double d;
         d = x_data[b_k - 1];
         if (ex > d) {

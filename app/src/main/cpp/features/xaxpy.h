@@ -13,6 +13,7 @@
 #define XAXPY_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -24,11 +25,13 @@ extern "C" {
 /* Function Declarations */
 void b_xaxpy(double a, double y[9], int iy0);
 
-void c_xaxpy(int n, double a, const double x_data[], int ix0, double y_data[]);
+void c_xaxpy(int n, double a, const emxArray_real_T *x, int ix0,
+             emxArray_real_T *y);
 
-void d_xaxpy(int n, double a, const double x_data[], double y_data[], int iy0);
+void d_xaxpy(int n, double a, const emxArray_real_T *x, emxArray_real_T *y,
+             int iy0);
 
-void xaxpy(int n, double a, int ix0, double y_data[], int iy0);
+void xaxpy(int n, double a, int ix0, emxArray_real_T *y, int iy0);
 
 #ifdef __cplusplus
 }

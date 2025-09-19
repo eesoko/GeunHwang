@@ -25,9 +25,9 @@ extern "C" {
 /* Function Declarations */
 double b_maximum(const emxArray_real_T *x, int *idx);
 
-double maximum(const double x_data[], int x_size);
+double maximum(const emxArray_real_T *x);
 
-double minimum(const double x_data[], int x_size);
+double minimum(const emxArray_real_T *x);
 
 #ifdef __cplusplus
 }

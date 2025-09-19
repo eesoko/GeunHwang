@@ -11,19 +11,37 @@
 
 /* Include files */
 #include "abs.h"
+#include "feature_extractor_codegen_emxutil.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
+#include "omp.h"
 #include <math.h>
 
 /* Function Definitions */
-int b_abs(const double x_data[], int x_size, double y_data[])
+void b_abs(const emxArray_real_T *x, emxArray_real_T *y)
 {
+  const double *x_data;
+  double *y_data;
+  int i;
   int k;
-  int y_size;
-  y_size = x_size;
-  for (k = 0; k < x_size; k++) {
-    y_data[k] = fabs(x_data[k]);
+  int nx;
+  x_data = x->data;
+  nx = x->size[0];
+  i = y->size[0];
+  y->size[0] = x->size[0];
+  emxEnsureCapacity_real_T(y, i);
+  y_data = y->data;
+  if (x->size[0] < 1200) {
+    for (k = 0; k < nx; k++) {
+      y_data[k] = fabs(x_data[k]);
+    }
+  } else {
+#pragma omp parallel for num_threads(omp_get_max_threads())
+
+    for (k = 0; k < nx; k++) {
+      y_data[k] = fabs(x_data[k]);
+    }
   }
-  return y_size;
 }
 
 /* End of code generation (abs.c) */

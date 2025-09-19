@@ -13,7 +13,7 @@
 #define CONVERTCODES_H
 
 /* Include files */
-#include "predict_exercise_internal_types.h"
+#include "predict_exercise_index_internal_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>

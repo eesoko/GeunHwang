@@ -18,14 +18,17 @@
 #include <math.h>
 
 /* Function Definitions */
-double b_std(const double x_data[], int x_size)
+double b_std(const emxArray_real_T *x)
 {
-  emxArray_real_T b_x_data;
+  const double *x_data;
   double y;
   int k;
-  if (x_size == 0) {
+  int n;
+  x_data = x->data;
+  n = x->size[0];
+  if (x->size[0] == 0) {
     y = rtNaN;
-  } else if (x_size == 1) {
+  } else if (x->size[0] == 1) {
     if ((!rtIsInf(x_data[0])) && (!rtIsNaN(x_data[0]))) {
       y = 0.0;
     } else {
@@ -34,15 +37,10 @@ double b_std(const double x_data[], int x_size)
   } else {
     double scale;
     double xbar;
-    b_x_data.data = (double *)&x_data[0];
-    b_x_data.size = &x_size;
-    b_x_data.allocatedSize = -1;
-    b_x_data.numDimensions = 1;
-    b_x_data.canFreeData = false;
-    xbar = colMajorFlatIter(&b_x_data, x_size) / (double)x_size;
+    xbar = colMajorFlatIter(x, x->size[0]) / (double)x->size[0];
     y = 0.0;
     scale = 3.3121686421112381E-170;
-    for (k = 0; k < x_size; k++) {
+    for (k = 0; k < n; k++) {
       double d;
       d = fabs(x_data[k] - xbar);
       if (d > scale) {
@@ -57,7 +55,7 @@ double b_std(const double x_data[], int x_size)
       }
     }
     y = scale * sqrt(y);
-    y /= sqrt((double)x_size - 1.0);
+    y /= sqrt((double)x->size[0] - 1.0);
   }
   return y;
 }

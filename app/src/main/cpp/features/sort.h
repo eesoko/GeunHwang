@@ -13,6 +13,7 @@
 #define SORT_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void sort(double x_data[], const int *x_size);
+void sort(emxArray_real_T *x);
 
 #ifdef __cplusplus
 }

@@ -13,6 +13,7 @@
 #define PCA_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,9 +23,9 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-int pca(const double x_data[], const int x_size[2], double varargout_1_data[],
-        int varargout_1_size[2], double varargout_2_data[],
-        int varargout_2_size[2], double varargout_3_data[]);
+int pca(const emxArray_real_T *x, double varargout_1_data[],
+        int varargout_1_size[2], emxArray_real_T *varargout_2,
+        double varargout_3_data[]);
 
 #ifdef __cplusplus
 }

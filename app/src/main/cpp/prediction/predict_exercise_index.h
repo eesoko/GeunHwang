@@ -3,14 +3,14 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * xdotc.h
+ * predict_exercise_index.h
  *
- * Code generation for function 'xdotc'
+ * Code generation for function 'predict_exercise_index'
  *
  */
 
-#ifndef XDOTC_H
-#define XDOTC_H
+#ifndef PREDICT_EXERCISE_INDEX_H
+#define PREDICT_EXERCISE_INDEX_H
 
 /* Include files */
 #include "rtwtypes.h"
@@ -22,11 +22,11 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-double xdotc(const double x[9], const double y[9], int iy0);
+extern int predict_exercise_index(const double features[32]);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/* End of code generation (xdotc.h) */
+/* End of code generation (predict_exercise_index.h) */

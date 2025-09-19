@@ -13,6 +13,7 @@
 #define TRAPZ_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,8 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-double trapz(const double x_data[], int x_size, const double y_data[],
-             int y_size);
+double trapz(const emxArray_real_T *x, const emxArray_real_T *y);
 
 #ifdef __cplusplus
 }

@@ -3,17 +3,17 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * predict_exercise_internal_types.h
+ * predict_exercise_index_internal_types.h
  *
- * Code generation for function 'predict_exercise'
+ * Code generation for function 'predict_exercise_index'
  *
  */
 
-#ifndef PREDICT_EXERCISE_INTERNAL_TYPES_H
-#define PREDICT_EXERCISE_INTERNAL_TYPES_H
+#ifndef PREDICT_EXERCISE_INDEX_INTERNAL_TYPES_H
+#define PREDICT_EXERCISE_INDEX_INTERNAL_TYPES_H
 
 /* Include files */
-#include "predict_exercise_types.h"
+#include "predict_exercise_index_types.h"
 #include "rtwtypes.h"
 
 /* Type Definitions */
@@ -74,4 +74,4 @@ typedef struct {
 #endif /* d_typedef_c_classreg_learning_c */
 
 #endif
-/* End of code generation (predict_exercise_internal_types.h) */
+/* End of code generation (predict_exercise_index_internal_types.h) */

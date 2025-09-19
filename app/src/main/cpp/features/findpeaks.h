@@ -13,6 +13,7 @@
 #define FINDPEAKS_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,8 +23,8 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-int findpeaks(const double Yin_data[], int Yin_size, double varargin_2,
-              double Ypk_data[], double Xpk_data[], int *Xpk_size);
+void findpeaks(const emxArray_real_T *Yin, double varargin_2,
+               emxArray_real_T *Ypk, emxArray_real_T *Xpk);
 
 #ifdef __cplusplus
 }

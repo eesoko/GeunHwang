@@ -22,8 +22,6 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void b_xrot(int n, double x_data[], int ix0, int iy0, double c, double s);
-
 void xrot(double x[9], int ix0, int iy0, double c, double s);
 
 #ifdef __cplusplus

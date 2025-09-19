@@ -5,7 +5,7 @@
  *
  * rtGetInf.c
  *
- * Code generation for function 'predict_exercise'
+ * Code generation for function 'predict_exercise_index'
  *
  */
 

@@ -13,6 +13,7 @@
 #define STD_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-double b_std(const double x_data[], int x_size);
+double b_std(const emxArray_real_T *x);
 
 #ifdef __cplusplus
 }

@@ -13,6 +13,7 @@
 #define XZLASCL_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void b_xzlascl(double cfrom, double cto, int m, double A_data[], int lda);
+void b_xzlascl(double cfrom, double cto, int m, emxArray_real_T *A, int lda);
 
 void xzlascl(double cfrom, double cto, int m, double A_data[]);
 

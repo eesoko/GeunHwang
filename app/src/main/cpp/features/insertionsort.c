@@ -11,13 +11,16 @@
 
 /* Include files */
 #include "insertionsort.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Definitions */
-void insertionsort(int x_data[], int xstart, int xend)
+void insertionsort(emxArray_int32_T *x, int xstart, int xend)
 {
   int i;
   int k;
+  int *x_data;
+  x_data = x->data;
   i = xstart + 1;
   for (k = i; k <= xend; k++) {
     int idx;

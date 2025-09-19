@@ -13,6 +13,7 @@
 #define GRADIENT_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-int gradient(const double x_data[], int x_size, double varargout_1_data[]);
+void gradient(const emxArray_real_T *x, emxArray_real_T *varargout_1);
 
 #ifdef __cplusplus
 }

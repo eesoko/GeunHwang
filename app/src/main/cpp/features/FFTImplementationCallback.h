@@ -23,14 +23,13 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void c_FFTImplementationCallback_doH(const double x_data[], int x_size,
+void c_FFTImplementationCallback_doH(const emxArray_real_T *x,
                                      emxArray_creal_T *y, int unsigned_nRows,
                                      const emxArray_real_T *costab,
                                      const emxArray_real_T *sintab);
 
-void c_FFTImplementationCallback_dob(const double x_data[], int x_size,
-                                     int n2blue, int nfft,
-                                     const emxArray_real_T *costab,
+void c_FFTImplementationCallback_dob(const emxArray_real_T *x, int n2blue,
+                                     int nfft, const emxArray_real_T *costab,
                                      const emxArray_real_T *sintab,
                                      const emxArray_real_T *sintabinv,
                                      emxArray_creal_T *y);

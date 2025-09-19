@@ -14,23 +14,6 @@
 #include "rt_nonfinite.h"
 
 /* Function Definitions */
-void b_xswap(int n, double x_data[], int ix0, int iy0)
-{
-  int i;
-  int k;
-  i = (unsigned char)n;
-  for (k = 0; k < i; k++) {
-    double temp;
-    int i1;
-    int temp_tmp;
-    temp_tmp = (ix0 + k) - 1;
-    temp = x_data[temp_tmp];
-    i1 = (iy0 + k) - 1;
-    x_data[temp_tmp] = x_data[i1];
-    x_data[i1] = temp;
-  }
-}
-
 void xswap(double x[9], int ix0, int iy0)
 {
   double temp;

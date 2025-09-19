@@ -11,7 +11,7 @@
 
 /* Include files */
 #include "updateCache.h"
-#include "predict_exercise_data.h"
+#include "predict_exercise_index_data.h"
 #include "rt_nonfinite.h"
 #include <emmintrin.h>
 

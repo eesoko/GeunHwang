@@ -12,47 +12,85 @@
 /* Include files */
 #include "findpeaks.h"
 #include "eml_setop.h"
+#include "feature_extractor_codegen_emxutil.h"
+#include "feature_extractor_codegen_types.h"
 #include "introsort.h"
 #include "rt_nonfinite.h"
+#include "omp.h"
 #include "rt_nonfinite.h"
 #include <math.h>
-#include <string.h>
 
 /* Function Definitions */
-int findpeaks(const double Yin_data[], int Yin_size, double varargin_2,
-              double Ypk_data[], double Xpk_data[], int *Xpk_size)
+void findpeaks(const emxArray_real_T *Yin, double varargin_2,
+               emxArray_real_T *Ypk, emxArray_real_T *Xpk)
 {
+  emxArray_boolean_T *idelete;
+  emxArray_int32_T *c;
+  emxArray_int32_T *iInfinite;
+  emxArray_int32_T *iPk;
+  emxArray_int32_T *idx;
+  emxArray_int32_T *iwork;
+  emxArray_int32_T *r;
+  emxArray_int32_T *sortIdx;
+  emxArray_int32_T *y;
+  emxArray_uint32_T *x;
+  const double *Yin_data;
   double ykfirst;
-  int c_data[300];
-  int iwork_data[300];
-  int fPk_data[150];
-  int iFinite_data[150];
-  int iInfinite_data[150];
-  int iPk_data[150];
-  int Ypk_size;
-  int b_nPk;
-  int jj;
+  double *Xpk_data;
+  double *Ypk_data;
+  int b_k;
+  int i;
   int k;
   int kfirst;
+  int loop_ub;
   int nInf;
   int nPk;
   int qEnd;
-  short y_data[300];
-  unsigned char x_data[150];
+  int *c_data;
+  int *iPk_data;
+  int *idx_data;
+  int *sortIdx_data;
+  unsigned int *x_data;
   char dir;
-  boolean_T idelete_data[300];
   boolean_T isinfykfirst;
-  kfirst = Yin_size - 1;
-  for (k = 0; k <= kfirst; k++) {
-    x_data[k] = (unsigned char)((unsigned int)k + 1U);
+  boolean_T *idelete_data;
+  Yin_data = Yin->data;
+  emxInit_uint32_T(&x);
+  loop_ub = Yin->size[0];
+  kfirst = x->size[0];
+  x->size[0] = Yin->size[0];
+  emxEnsureCapacity_uint32_T(x, kfirst);
+  x_data = x->data;
+  kfirst = Yin->size[0];
+  if (Yin->size[0] < 1200) {
+    for (i = 0; i < loop_ub; i++) {
+      x_data[i] = (unsigned int)i + 1U;
+    }
+  } else {
+#pragma omp parallel for num_threads(omp_get_max_threads())
+
+    for (i = 0; i < kfirst; i++) {
+      x_data[i] = (unsigned int)i + 1U;
+    }
   }
+  emxInit_int32_T(&idx, 1);
+  kfirst = idx->size[0];
+  idx->size[0] = loop_ub;
+  emxEnsureCapacity_int32_T(idx, kfirst);
+  idx_data = idx->data;
+  emxInit_int32_T(&iInfinite, 1);
+  kfirst = iInfinite->size[0];
+  iInfinite->size[0] = loop_ub;
+  emxEnsureCapacity_int32_T(iInfinite, kfirst);
+  iPk_data = iInfinite->data;
+  emxInit_int32_T(&sortIdx, 1);
   nPk = 0;
   nInf = 0;
   dir = 'n';
   kfirst = 0;
   ykfirst = rtInf;
   isinfykfirst = true;
-  for (k = 1; k <= Yin_size; k++) {
+  for (k = 1; k <= loop_ub; k++) {
     double yk;
     boolean_T isinfyk;
     yk = Yin_data[k - 1];
@@ -62,7 +100,7 @@ int findpeaks(const double Yin_data[], int Yin_size, double varargin_2,
     } else if (rtIsInf(yk) && (yk > 0.0)) {
       isinfyk = true;
       nInf++;
-      iInfinite_data[nInf - 1] = k;
+      iPk_data[nInf - 1] = k;
     } else {
       isinfyk = false;
     }
@@ -75,7 +113,7 @@ int findpeaks(const double Yin_data[], int Yin_size, double varargin_2,
         dir = 'd';
         if (previousdir == 'i') {
           nPk++;
-          iFinite_data[nPk - 1] = kfirst;
+          idx_data[nPk - 1] = kfirst;
         }
       } else {
         dir = 'i';
@@ -88,37 +126,81 @@ int findpeaks(const double Yin_data[], int Yin_size, double varargin_2,
   if (nPk < 1) {
     nPk = 0;
   }
-  b_nPk = 0;
+  kfirst = idx->size[0];
+  idx->size[0] = nPk;
+  emxEnsureCapacity_int32_T(idx, kfirst);
+  idx_data = idx->data;
+  kfirst = iInfinite->size[0];
+  if (nInf < 1) {
+    iInfinite->size[0] = 0;
+  } else {
+    iInfinite->size[0] = nInf;
+  }
+  emxEnsureCapacity_int32_T(iInfinite, kfirst);
+  emxInit_int32_T(&iPk, 1);
+  kfirst = iPk->size[0];
+  iPk->size[0] = nPk;
+  emxEnsureCapacity_int32_T(iPk, kfirst);
+  iPk_data = iPk->data;
+  nInf = 0;
   for (k = 0; k < nPk; k++) {
-    kfirst = iFinite_data[k];
-    ykfirst = Yin_data[kfirst - 1];
+    ykfirst = Yin_data[idx_data[k] - 1];
     if ((ykfirst > rtMinusInf) &&
-        (ykfirst - fmax(Yin_data[kfirst - 2], Yin_data[kfirst]) >= 0.0)) {
-      b_nPk++;
-      iPk_data[b_nPk - 1] = kfirst;
+        (ykfirst - fmax(Yin_data[idx_data[k] - 2], Yin_data[idx_data[k]]) >=
+         0.0)) {
+      nInf++;
+      iPk_data[nInf - 1] = idx_data[k];
     }
   }
-  if (nInf < 1) {
-    nInf = 0;
-  }
-  Ypk_size = do_vectors(iPk_data, b_nPk, iInfinite_data, nInf, c_data, fPk_data,
-                        &Ypk_size, iFinite_data, &kfirst);
-  if ((Ypk_size == 0) || (varargin_2 == 0.0)) {
-    if (Ypk_size > 0) {
-      y_data[0] = 1;
+  kfirst = iPk->size[0];
+  iPk->size[0] = nInf;
+  emxEnsureCapacity_int32_T(iPk, kfirst);
+  emxInit_int32_T(&c, 1);
+  do_vectors(iPk, iInfinite, c, sortIdx, idx);
+  c_data = c->data;
+  emxFree_int32_T(&iInfinite);
+  emxFree_int32_T(&iPk);
+  emxInit_boolean_T(&idelete, 1);
+  emxInit_int32_T(&r, 1);
+  emxInit_int32_T(&y, 2);
+  emxInit_int32_T(&iwork, 1);
+  if ((c->size[0] == 0) || (varargin_2 == 0.0)) {
+    nInf = c->size[0];
+    kfirst = y->size[0] * y->size[1];
+    y->size[0] = 1;
+    y->size[1] = c->size[0];
+    emxEnsureCapacity_int32_T(y, kfirst);
+    iPk_data = y->data;
+    if (c->size[0] > 0) {
+      iPk_data[0] = 1;
       kfirst = 1;
-      for (k = 2; k <= Ypk_size; k++) {
+      for (k = 2; k <= nInf; k++) {
         kfirst++;
-        y_data[k - 1] = (short)kfirst;
+        iPk_data[k - 1] = kfirst;
       }
     }
-    for (k = 0; k < Ypk_size; k++) {
-      iwork_data[k] = y_data[k];
+    kfirst = idx->size[0];
+    idx->size[0] = c->size[0];
+    emxEnsureCapacity_int32_T(idx, kfirst);
+    idx_data = idx->data;
+    for (k = 0; k < nInf; k++) {
+      idx_data[k] = iPk_data[k];
     }
   } else {
-    int sortIdx_data[300];
-    int i;
-    kfirst = Ypk_size - 1;
+    int b_i;
+    int b_loop_ub;
+    int n;
+    b_loop_ub = c->size[0];
+    kfirst = sortIdx->size[0];
+    sortIdx->size[0] = c->size[0];
+    emxEnsureCapacity_int32_T(sortIdx, kfirst);
+    sortIdx_data = sortIdx->data;
+    n = c->size[0] + 1;
+    kfirst = iwork->size[0];
+    iwork->size[0] = c->size[0];
+    emxEnsureCapacity_int32_T(iwork, kfirst);
+    iPk_data = iwork->data;
+    kfirst = c->size[0] - 1;
     for (k = 1; k <= kfirst; k += 2) {
       ykfirst = Yin_data[c_data[k - 1] - 1];
       if ((ykfirst >= Yin_data[c_data[k] - 1]) || rtIsNaN(ykfirst)) {
@@ -129,100 +211,154 @@ int findpeaks(const double Yin_data[], int Yin_size, double varargin_2,
         sortIdx_data[k] = k;
       }
     }
-    if (((unsigned int)Ypk_size & 1U) != 0U) {
-      sortIdx_data[Ypk_size - 1] = Ypk_size;
+    if (((unsigned int)c->size[0] & 1U) != 0U) {
+      sortIdx_data[c->size[0] - 1] = c->size[0];
     }
-    i = 2;
-    while (i < Ypk_size) {
+    b_i = 2;
+    while (b_i < n - 1) {
       int i2;
       int j;
-      i2 = i << 1;
+      i2 = b_i << 1;
       j = 1;
-      for (kfirst = i + 1; kfirst < Ypk_size + 1; kfirst = qEnd + i) {
+      for (kfirst = b_i + 1; kfirst < n; kfirst = qEnd + b_i) {
+        int c_k;
         int kEnd;
-        nPk = j - 1;
-        b_nPk = kfirst;
+        nInf = j - 1;
+        nPk = kfirst;
         qEnd = j + i2;
-        if (qEnd > Ypk_size + 1) {
-          qEnd = Ypk_size + 1;
+        if (qEnd > n) {
+          qEnd = n;
         }
-        nInf = 0;
+        c_k = 0;
         kEnd = qEnd - j;
-        while (nInf < kEnd) {
-          int b_i;
-          ykfirst = Yin_data[c_data[sortIdx_data[nPk] - 1] - 1];
-          b_i = sortIdx_data[b_nPk - 1];
-          if ((ykfirst >= Yin_data[c_data[b_i - 1] - 1]) || rtIsNaN(ykfirst)) {
-            iwork_data[nInf] = sortIdx_data[nPk];
-            nPk++;
-            if (nPk + 1 == kfirst) {
-              while (b_nPk < qEnd) {
-                nInf++;
-                iwork_data[nInf] = sortIdx_data[b_nPk - 1];
-                b_nPk++;
-              }
-            }
-          } else {
-            iwork_data[nInf] = b_i;
-            b_nPk++;
-            if (b_nPk == qEnd) {
-              while (nPk + 1 < kfirst) {
-                nInf++;
-                iwork_data[nInf] = sortIdx_data[nPk];
+        while (c_k < kEnd) {
+          int i1;
+          ykfirst = Yin_data[c_data[sortIdx_data[nInf] - 1] - 1];
+          i1 = sortIdx_data[nPk - 1];
+          if ((ykfirst >= Yin_data[c_data[i1 - 1] - 1]) || rtIsNaN(ykfirst)) {
+            iPk_data[c_k] = sortIdx_data[nInf];
+            nInf++;
+            if (nInf + 1 == kfirst) {
+              while (nPk < qEnd) {
+                c_k++;
+                iPk_data[c_k] = sortIdx_data[nPk - 1];
                 nPk++;
               }
             }
+          } else {
+            iPk_data[c_k] = i1;
+            nPk++;
+            if (nPk == qEnd) {
+              while (nInf + 1 < kfirst) {
+                c_k++;
+                iPk_data[c_k] = sortIdx_data[nInf];
+                nInf++;
+              }
+            }
           }
-          nInf++;
+          c_k++;
         }
-        for (k = 0; k < kEnd; k++) {
-          sortIdx_data[(j + k) - 1] = iwork_data[k];
+        for (b_k = 0; b_k < kEnd; b_k++) {
+          sortIdx_data[(j + b_k) - 1] = iPk_data[b_k];
         }
         j = qEnd;
       }
-      i = i2;
+      b_i = i2;
     }
-    memset(&idelete_data[0], 0, (unsigned int)Ypk_size * sizeof(boolean_T));
-    for (k = 0; k < Ypk_size; k++) {
+    kfirst = idelete->size[0];
+    idelete->size[0] = c->size[0];
+    emxEnsureCapacity_boolean_T(idelete, kfirst);
+    idelete_data = idelete->data;
+    for (k = 0; k < b_loop_ub; k++) {
+      idelete_data[k] = false;
+    }
+    for (k = 0; k < b_loop_ub; k++) {
       if (!idelete_data[k]) {
-        kfirst = x_data[c_data[sortIdx_data[k] - 1] - 1];
-        for (jj = 0; jj < Ypk_size; jj++) {
-          nPk = (Ypk_size - jj) - 1;
-          b_nPk = x_data[c_data[sortIdx_data[nPk] - 1] - 1];
-          idelete_data[nPk] =
-              (idelete_data[nPk] || ((b_nPk >= (double)kfirst - varargin_2) &&
-                                     (b_nPk <= (double)kfirst + varargin_2)));
+        for (b_k = 0; b_k < b_loop_ub; b_k++) {
+          unsigned int b_idelete_tmp;
+          unsigned int idelete_tmp;
+          kfirst = (b_loop_ub - b_k) - 1;
+          idelete_tmp = x_data[c_data[sortIdx_data[kfirst] - 1] - 1];
+          b_idelete_tmp = x_data[c_data[sortIdx_data[k] - 1] - 1];
+          idelete_data[kfirst] =
+              (idelete_data[kfirst] ||
+               ((idelete_tmp >= (double)b_idelete_tmp - varargin_2) &&
+                (idelete_tmp <= (double)b_idelete_tmp + varargin_2)));
         }
         idelete_data[k] = false;
       }
     }
-    nPk = 0;
-    kfirst = 0;
-    for (k = 0; k < Ypk_size; k++) {
+    nInf = 0;
+    for (k = 0; k < b_loop_ub; k++) {
       if (!idelete_data[k]) {
-        nPk++;
-        y_data[kfirst] = (short)k;
+        nInf++;
+      }
+    }
+    kfirst = r->size[0];
+    r->size[0] = nInf;
+    emxEnsureCapacity_int32_T(r, kfirst);
+    iPk_data = r->data;
+    kfirst = 0;
+    for (k = 0; k < b_loop_ub; k++) {
+      if (!idelete_data[k]) {
+        iPk_data[kfirst] = k;
         kfirst++;
       }
     }
-    Ypk_size = nPk;
-    for (k = 0; k < nPk; k++) {
-      iwork_data[k] = sortIdx_data[y_data[k]];
+    nInf = r->size[0];
+    kfirst = idx->size[0];
+    idx->size[0] = r->size[0];
+    emxEnsureCapacity_int32_T(idx, kfirst);
+    idx_data = idx->data;
+    for (k = 0; k < nInf; k++) {
+      idx_data[k] = sortIdx_data[iPk_data[k]];
     }
-    if (nPk != 0) {
-      introsort(iwork_data, nPk);
+    if (r->size[0] != 0) {
+      introsort(idx, r->size[0]);
+      idx_data = idx->data;
     }
   }
-  if (Ypk_size > Yin_size) {
-    Ypk_size = Yin_size;
+  emxFree_int32_T(&iwork);
+  emxFree_int32_T(&y);
+  emxFree_int32_T(&r);
+  emxFree_boolean_T(&idelete);
+  emxFree_uint32_T(&x);
+  if (idx->size[0] > Yin->size[0]) {
+    kfirst = sortIdx->size[0];
+    sortIdx->size[0] = loop_ub;
+    emxEnsureCapacity_int32_T(sortIdx, kfirst);
+    kfirst = idx->size[0];
+    idx->size[0] = loop_ub;
+    emxEnsureCapacity_int32_T(idx, kfirst);
+    idx_data = idx->data;
+  } else {
+    kfirst = sortIdx->size[0];
+    sortIdx->size[0] = idx->size[0];
+    emxEnsureCapacity_int32_T(sortIdx, kfirst);
   }
-  *Xpk_size = Ypk_size;
-  for (k = 0; k < Ypk_size; k++) {
-    kfirst = c_data[iwork_data[k] - 1];
-    Ypk_data[k] = Yin_data[kfirst - 1];
-    Xpk_data[k] = (unsigned char)((unsigned char)(kfirst - 1) + 1);
+  nInf = sortIdx->size[0];
+  kfirst = sortIdx->size[0];
+  sortIdx->size[0] = nInf;
+  emxEnsureCapacity_int32_T(sortIdx, kfirst);
+  sortIdx_data = sortIdx->data;
+  for (k = 0; k < nInf; k++) {
+    sortIdx_data[k] = c_data[idx_data[k] - 1];
   }
-  return Ypk_size;
+  emxFree_int32_T(&c);
+  emxFree_int32_T(&idx);
+  kfirst = Ypk->size[0];
+  Ypk->size[0] = nInf;
+  emxEnsureCapacity_real_T(Ypk, kfirst);
+  Ypk_data = Ypk->data;
+  kfirst = Xpk->size[0];
+  Xpk->size[0] = nInf;
+  emxEnsureCapacity_real_T(Xpk, kfirst);
+  Xpk_data = Xpk->data;
+  for (k = 0; k < nInf; k++) {
+    Ypk_data[k] = Yin_data[sortIdx_data[k] - 1];
+    Xpk_data[k] = (unsigned int)sortIdx_data[k];
+  }
+  emxFree_int32_T(&sortIdx);
 }
 
 /* End of code generation (findpeaks.c) */

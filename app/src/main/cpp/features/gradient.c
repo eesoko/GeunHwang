@@ -11,20 +11,29 @@
 
 /* Include files */
 #include "gradient.h"
+#include "feature_extractor_codegen_emxutil.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include <emmintrin.h>
 
 /* Function Definitions */
-int gradient(const double x_data[], int x_size, double varargout_1_data[])
+void gradient(const emxArray_real_T *x, emxArray_real_T *varargout_1)
 {
+  const double *x_data;
+  double *varargout_1_data;
   int j;
-  int varargout_1_size;
-  varargout_1_size = x_size;
-  if (x_size >= 2) {
-    int scalarLB;
+  int loop_ub;
+  int scalarLB;
+  x_data = x->data;
+  loop_ub = x->size[0];
+  scalarLB = varargout_1->size[0];
+  varargout_1->size[0] = x->size[0];
+  emxEnsureCapacity_real_T(varargout_1, scalarLB);
+  varargout_1_data = varargout_1->data;
+  if (x->size[0] >= 2) {
     int vectorUB;
     varargout_1_data[0] = x_data[1] - x_data[0];
-    scalarLB = (((x_size - 2) / 2) << 1) + 2;
+    scalarLB = (((x->size[0] - 2) / 2) << 1) + 2;
     vectorUB = scalarLB - 2;
     for (j = 2; j <= vectorUB; j += 2) {
       _mm_storeu_pd(&varargout_1_data[j - 1],
@@ -32,14 +41,20 @@ int gradient(const double x_data[], int x_size, double varargout_1_data[])
                                           _mm_loadu_pd(&x_data[j - 2])),
                                _mm_set1_pd(2.0)));
     }
-    for (j = scalarLB; j < x_size; j++) {
+    for (j = scalarLB; j < loop_ub; j++) {
       varargout_1_data[j - 1] = (x_data[j] - x_data[j - 2]) / 2.0;
     }
-    varargout_1_data[x_size - 1] = x_data[x_size - 1] - x_data[x_size - 2];
-  } else if (x_size - 1 >= 0) {
-    varargout_1_data[0] = 0.0;
+    varargout_1_data[x->size[0] - 1] =
+        x_data[x->size[0] - 1] - x_data[x->size[0] - 2];
+  } else {
+    scalarLB = varargout_1->size[0];
+    varargout_1->size[0] = x->size[0];
+    emxEnsureCapacity_real_T(varargout_1, scalarLB);
+    varargout_1_data = varargout_1->data;
+    for (j = 0; j < loop_ub; j++) {
+      varargout_1_data[0] = 0.0;
+    }
   }
-  return varargout_1_size;
 }
 
 /* End of code generation (gradient.c) */

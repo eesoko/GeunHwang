@@ -13,6 +13,7 @@
 #define ABS_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-int b_abs(const double x_data[], int x_size, double y_data[]);
+void b_abs(const emxArray_real_T *x, emxArray_real_T *y);
 
 #ifdef __cplusplus
 }

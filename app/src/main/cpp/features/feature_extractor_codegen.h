@@ -13,6 +13,7 @@
 #define FEATURE_EXTRACTOR_CODEGEN_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,8 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern void feature_extractor_codegen(const double raw_data_data[],
-                                      const int raw_data_size[2],
+extern void feature_extractor_codegen(const emxArray_real_T *raw_data,
                                       double Fs_actual, double features[32]);
 
 #ifdef __cplusplus

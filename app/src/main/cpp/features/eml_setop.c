@@ -11,45 +11,67 @@
 
 /* Include files */
 #include "eml_setop.h"
+#include "feature_extractor_codegen_emxutil.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Definitions */
-int do_vectors(const int a_data[], int a_size, const int b_data[], int b_size,
-               int c_data[], int ia_data[], int *ia_size, int ib_data[],
-               int *ib_size)
+void do_vectors(const emxArray_int32_T *a, const emxArray_int32_T *b,
+                emxArray_int32_T *c, emxArray_int32_T *ia, emxArray_int32_T *ib)
 {
+  const int *a_data;
+  const int *b_data;
   int b_ialast;
-  int c_size;
   int iafirst;
   int ialast;
   int ibfirst;
   int iblast;
+  int na;
+  int nb;
   int nc;
+  int ncmax;
   int nia;
   int nib;
-  c_size = a_size + b_size;
-  *ia_size = a_size;
-  *ib_size = b_size;
+  int *c_data;
+  int *ia_data;
+  int *ib_data;
+  b_data = b->data;
+  a_data = a->data;
+  na = a->size[0];
+  nb = b->size[0];
+  ncmax = a->size[0] + b->size[0];
+  ialast = c->size[0];
+  c->size[0] = ncmax;
+  emxEnsureCapacity_int32_T(c, ialast);
+  c_data = c->data;
+  ialast = ia->size[0];
+  ia->size[0] = a->size[0];
+  emxEnsureCapacity_int32_T(ia, ialast);
+  ia_data = ia->data;
+  ialast = ib->size[0];
+  ib->size[0] = b->size[0];
+  emxEnsureCapacity_int32_T(ib, ialast);
+  ib_data = ib->data;
   nc = -1;
   nia = -1;
   nib = 0;
   iafirst = 1;
-  ialast = 0;
+  b_ialast = 0;
   ibfirst = 0;
   iblast = 0;
-  while ((ialast + 1 <= a_size) && (iblast + 1 <= b_size)) {
+  while ((b_ialast + 1 <= na) && (iblast + 1 <= nb)) {
     int ak;
     int b_iblast;
     int bk;
-    b_ialast = ialast + 1;
-    ak = a_data[ialast];
-    while ((b_ialast < a_size) && (a_data[b_ialast] == ak)) {
-      b_ialast++;
+    ialast = b_ialast + 1;
+    ak = a_data[b_ialast];
+    while ((ialast < a->size[0]) && (a_data[ialast] == ak)) {
+      ialast++;
     }
-    ialast = b_ialast - 1;
+    b_ialast = ialast - 1;
     b_iblast = iblast + 1;
     bk = b_data[iblast];
-    while ((b_iblast < b_size) && (b_data[b_iblast] == bk)) {
+    while ((b_iblast < b->size[0]) && (b_data[b_iblast] == bk)) {
       b_iblast++;
     }
     iblast = b_iblast - 1;
@@ -58,8 +80,8 @@ int do_vectors(const int a_data[], int a_size, const int b_data[], int b_size,
       c_data[nc] = ak;
       nia++;
       ia_data[nia] = iafirst;
-      ialast = b_ialast;
-      iafirst = b_ialast + 1;
+      b_ialast = ialast;
+      iafirst = ialast + 1;
       iblast = b_iblast;
       ibfirst = b_iblast;
     } else if (ak < bk) {
@@ -67,8 +89,8 @@ int do_vectors(const int a_data[], int a_size, const int b_data[], int b_size,
       nia++;
       c_data[nc] = ak;
       ia_data[nia] = iafirst;
-      ialast = b_ialast;
-      iafirst = b_ialast + 1;
+      b_ialast = ialast;
+      iafirst = ialast + 1;
     } else {
       nc++;
       nib++;
@@ -78,52 +100,57 @@ int do_vectors(const int a_data[], int a_size, const int b_data[], int b_size,
       ibfirst = b_iblast;
     }
   }
-  while (ialast + 1 <= a_size) {
-    b_ialast = ialast + 1;
-    while ((b_ialast < a_size) && (a_data[b_ialast] == a_data[ialast])) {
-      b_ialast++;
+  while (b_ialast + 1 <= na) {
+    ialast = b_ialast + 1;
+    while ((ialast < a->size[0]) && (a_data[ialast] == a_data[b_ialast])) {
+      ialast++;
     }
     nc++;
     nia++;
-    c_data[nc] = a_data[ialast];
+    c_data[nc] = a_data[b_ialast];
     ia_data[nia] = iafirst;
-    ialast = b_ialast;
-    iafirst = b_ialast + 1;
+    b_ialast = ialast;
+    iafirst = ialast + 1;
   }
-  while (iblast + 1 <= b_size) {
-    b_ialast = iblast + 1;
-    while ((b_ialast < b_size) && (b_data[b_ialast] == b_data[iblast])) {
-      b_ialast++;
+  while (iblast + 1 <= nb) {
+    ialast = iblast + 1;
+    while ((ialast < b->size[0]) && (b_data[ialast] == b_data[iblast])) {
+      ialast++;
     }
     nc++;
     nib++;
     c_data[nc] = b_data[iblast];
     ib_data[nib - 1] = ibfirst + 1;
-    iblast = b_ialast;
-    ibfirst = b_ialast;
+    iblast = ialast;
+    ibfirst = ialast;
   }
-  if (a_size > 0) {
+  if (a->size[0] > 0) {
+    ialast = ia->size[0];
     if (nia + 1 < 1) {
-      *ia_size = 0;
+      ia->size[0] = 0;
     } else {
-      *ia_size = nia + 1;
+      ia->size[0] = nia + 1;
     }
+    emxEnsureCapacity_int32_T(ia, ialast);
   }
-  if (b_size > 0) {
+  if (b->size[0] > 0) {
+    ialast = ib->size[0];
     if (nib < 1) {
-      *ib_size = 0;
+      ib->size[0] = 0;
     } else {
-      *ib_size = nib;
+      ib->size[0] = nib;
     }
+    emxEnsureCapacity_int32_T(ib, ialast);
   }
-  if (c_size > 0) {
+  if (ncmax > 0) {
+    ialast = c->size[0];
     if (nc + 1 < 1) {
-      c_size = 0;
+      c->size[0] = 0;
     } else {
-      c_size = nc + 1;
+      c->size[0] = nc + 1;
     }
+    emxEnsureCapacity_int32_T(c, ialast);
   }
-  return c_size;
 }
 
 /* End of code generation (eml_setop.c) */

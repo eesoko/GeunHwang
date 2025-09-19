@@ -15,42 +15,40 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        externalNativeBuild {
-            cmake {
-                cppFlags("")
-            }
-        }
-
-        // --- ▼▼▼ 이 부분이 추가되었습니다 ▼▼▼ ---
+        // --- ABI 설정 ---
         ndk {
-            // 앱이 지원할 CPU 아키텍처 목록을 지정합니다.
-            // 에뮬레이터는 'x86_64', 실제 기기는 'arm64-v8a'를 사용합니다.
-            abiFilters += listOf("x86_64", "arm64-v8a")
+            abiFilters += listOf("armeabi-v7a")
         }
-        // --- ▲▲▲ ---
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
-    // C++ 코드를 빌드할 CMakeLists.txt 경로를 지정합니다.
+    // C++ 빌드 설정 (CMakeLists.txt 경로 지정)
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
@@ -60,7 +58,6 @@ android {
 }
 
 dependencies {
-    // (기존 dependencies 내용은 그대로 유지)
     val room_version = "2.6.1"
     val wear_compose_version = "1.3.1"
 

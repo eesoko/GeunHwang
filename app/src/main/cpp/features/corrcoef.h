@@ -13,6 +13,7 @@
 #define CORRCOEF_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,8 +23,8 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void corrcoef(const double x_data[], int x_size, const double varargin_1_data[],
-              int varargin_1_size, double r[4]);
+void corrcoef(const emxArray_real_T *x, const emxArray_real_T *varargin_1,
+              double r[4]);
 
 #ifdef __cplusplus
 }

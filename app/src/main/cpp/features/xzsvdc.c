@@ -11,6 +11,8 @@
 
 /* Include files */
 #include "xzsvdc.h"
+#include "feature_extractor_codegen_emxutil.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include "xaxpy.h"
 #include "xdotc.h"
@@ -25,10 +27,10 @@
 #include <string.h>
 
 /* Function Definitions */
-int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
-           double S_data[], double V_data[], int V_size[2])
+int xzsvdc(emxArray_real_T *A, emxArray_real_T *U, double S_data[],
+           double V_data[], int V_size[2])
 {
-  double work_data[150];
+  emxArray_real_T *work;
   double Vf[9];
   double e[3];
   double s_data[3];
@@ -39,39 +41,54 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
   double nrm;
   double sm;
   double sqds;
+  double *A_data;
+  double *U_data;
+  double *work_data;
   int S_size;
   int j;
+  int k;
   int n;
   int ns;
   int q;
   boolean_T doscale;
-  n = A_size[0];
-  ns = A_size[0] + 1;
+  A_data = A->data;
+  n = A->size[0];
+  ns = A->size[0] + 1;
   if (ns > 3) {
     ns = 3;
   }
-  S_size = A_size[0];
+  S_size = A->size[0];
   if (S_size > 3) {
     S_size = 3;
   }
-  memset(&s_data[0], 0, (unsigned int)ns * sizeof(double));
+  if (ns - 1 >= 0) {
+    memset(&s_data[0], 0, (unsigned int)ns * sizeof(double));
+  }
   e[0] = 0.0;
   e[1] = 0.0;
   e[2] = 0.0;
-  if (n - 1 >= 0) {
-    memset(&work_data[0], 0, (unsigned int)n * sizeof(double));
+  emxInit_real_T(&work, 1);
+  ns = work->size[0];
+  work->size[0] = A->size[0];
+  emxEnsureCapacity_real_T(work, ns);
+  work_data = work->data;
+  for (j = 0; j < n; j++) {
+    work_data[j] = 0.0;
   }
-  U_size[0] = A_size[0];
-  U_size[1] = S_size;
-  ns = A_size[0] * S_size;
-  if (ns - 1 >= 0) {
-    memset(&U_data[0], 0, (unsigned int)ns * sizeof(double));
+  ns = U->size[0] * U->size[1];
+  U->size[0] = A->size[0];
+  U->size[1] = S_size;
+  emxEnsureCapacity_real_T(U, ns);
+  U_data = U->data;
+  ns = A->size[0] * S_size;
+  for (j = 0; j < ns; j++) {
+    U_data[j] = 0.0;
   }
   memset(&Vf[0], 0, 9U * sizeof(double));
   doscale = false;
   cscale = 0.0;
-  anrm = xzlangeM(A_data, A_size);
-  if (A_size[0] == 0) {
+  anrm = xzlangeM(A);
+  if (A->size[0] == 0) {
     Vf[0] = 1.0;
     Vf[4] = 1.0;
     Vf[8] = 1.0;
@@ -79,8 +96,9 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
     __m128d r;
     double rt;
     double snorm;
-    int b_vectorUB;
     int iter;
+    int ix;
+    int iy;
     int m;
     int nct;
     int nctp1;
@@ -88,22 +106,25 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
     int nrt;
     int qp1;
     int qq;
-    int qq_tmp;
-    int qs;
-    int vectorUB;
+    boolean_T guard1;
     cscale = anrm;
+    guard1 = false;
     if ((anrm > 0.0) && (anrm < 6.7178761075670888E-139)) {
       doscale = true;
       cscale = 6.7178761075670888E-139;
-      b_xzlascl(anrm, cscale, A_size[0], A_data, A_size[0]);
+      guard1 = true;
     } else if (anrm > 1.4885657073574029E+138) {
       doscale = true;
       cscale = 1.4885657073574029E+138;
-      b_xzlascl(anrm, cscale, A_size[0], A_data, A_size[0]);
+      guard1 = true;
     }
-    nrt = (A_size[0] >= 1);
-    if (A_size[0] >= 1) {
-      nct = A_size[0] - 1;
+    if (guard1) {
+      b_xzlascl(anrm, cscale, A->size[0], A, A->size[0]);
+      A_data = A->data;
+    }
+    nrt = (A->size[0] >= 1);
+    if (A->size[0] >= 1) {
+      nct = A->size[0] - 1;
     } else {
       nct = 0;
     }
@@ -112,52 +133,50 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
     }
     nctp1 = nct + 1;
     if (nct >= nrt) {
-      m = nct;
+      iter = nct;
     } else {
-      m = 1;
+      iter = 1;
     }
-    for (q = 0; q < m; q++) {
+    for (q = 0; q < iter; q++) {
       boolean_T apply_transform;
       qp1 = q + 2;
-      iter = n * q;
-      qq_tmp = q + iter;
-      qq = qq_tmp + 1;
-      nmq = n - q;
+      qq = (q + n * q) + 1;
+      nmq = (n - q) - 1;
       apply_transform = false;
       if (q + 1 <= nct) {
-        nrm = xnrm2(nmq, A_data, qq_tmp + 1);
+        nrm = xnrm2(nmq + 1, A, qq);
         if (nrm > 0.0) {
           apply_transform = true;
-          if (A_data[qq_tmp] < 0.0) {
+          if (A_data[qq - 1] < 0.0) {
             nrm = -nrm;
           }
           s_data[q] = nrm;
           if (fabs(nrm) >= 1.0020841800044864E-292) {
             nrm = 1.0 / nrm;
-            ns = (qq_tmp + nmq) + 1;
-            qs = (((((ns - qq_tmp) - 1) / 2) << 1) + qq_tmp) + 1;
-            vectorUB = qs - 2;
-            for (j = qq; j <= vectorUB; j += 2) {
+            ns = qq + nmq;
+            ix = ((((ns - qq) + 1) / 2) << 1) + qq;
+            iy = ix - 2;
+            for (j = qq; j <= iy; j += 2) {
               r = _mm_loadu_pd(&A_data[j - 1]);
               _mm_storeu_pd(&A_data[j - 1], _mm_mul_pd(_mm_set1_pd(nrm), r));
             }
-            for (j = qs; j < ns; j++) {
+            for (j = ix; j <= ns; j++) {
               A_data[j - 1] *= nrm;
             }
           } else {
-            ns = (qq_tmp + nmq) + 1;
-            qs = (((((ns - qq_tmp) - 1) / 2) << 1) + qq_tmp) + 1;
-            b_vectorUB = qs - 2;
-            for (j = qq; j <= b_vectorUB; j += 2) {
+            ns = qq + nmq;
+            ix = ((((ns - qq) + 1) / 2) << 1) + qq;
+            iy = ix - 2;
+            for (j = qq; j <= iy; j += 2) {
               r = _mm_loadu_pd(&A_data[j - 1]);
               _mm_storeu_pd(&A_data[j - 1],
                             _mm_div_pd(r, _mm_set1_pd(s_data[q])));
             }
-            for (j = qs; j < ns; j++) {
+            for (j = ix; j <= ns; j++) {
               A_data[j - 1] /= s_data[q];
             }
           }
-          A_data[qq_tmp]++;
+          A_data[qq - 1]++;
           s_data[q] = -s_data[q];
         } else {
           s_data[q] = 0.0;
@@ -166,17 +185,21 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
       for (j = qp1; j < 4; j++) {
         ns = q + n * (j - 1);
         if (apply_transform) {
-          xaxpy(nmq,
-                -(xdotc(nmq, A_data, qq_tmp + 1, A_data, ns + 1) /
-                  A_data[qq_tmp]),
-                qq_tmp + 1, A_data, ns + 1);
+          nrm = 0.0;
+          if (nmq >= 0) {
+            for (k = 0; k <= nmq; k++) {
+              nrm += A_data[(qq + k) - 1] * A_data[ns + k];
+            }
+          }
+          nrm = -(nrm / A_data[q + A->size[0] * q]);
+          xaxpy(nmq + 1, nrm, qq, A, ns + 1);
+          A_data = A->data;
         }
         e[j - 1] = A_data[ns];
       }
       if (q + 1 <= nct) {
         for (j = q + 1; j <= n; j++) {
-          ns = (j + iter) - 1;
-          U_data[ns] = A_data[ns];
+          U_data[(j + U->size[0] * q) - 1] = A_data[(j + A->size[0] * q) - 1];
         }
       }
       if (q + 1 <= nrt) {
@@ -193,8 +216,8 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
           if (fabs(e[0]) >= 1.0020841800044864E-292) {
             nrm = 1.0 / e[0];
             ns = ((((2 - q) / 2) << 1) + q) + 2;
-            qs = ns - 2;
-            for (j = qp1; j <= qs; j += 2) {
+            iy = ns - 2;
+            for (j = qp1; j <= iy; j += 2) {
               r = _mm_loadu_pd(&e[j - 1]);
               _mm_storeu_pd(&e[j - 1], _mm_mul_pd(_mm_set1_pd(nrm), r));
             }
@@ -203,8 +226,8 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
             }
           } else {
             ns = ((((2 - q) / 2) << 1) + q) + 2;
-            qs = ns - 2;
-            for (j = qp1; j <= qs; j += 2) {
+            iy = ns - 2;
+            for (j = qp1; j <= iy; j += 2) {
               r = _mm_loadu_pd(&e[j - 1]);
               _mm_storeu_pd(&e[j - 1], _mm_div_pd(r, _mm_set1_pd(nrm)));
             }
@@ -215,16 +238,16 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
           e[1]++;
           e[0] = -e[0];
           if (n >= 2) {
-            if (qp1 <= n) {
-              memset(&work_data[qp1 + -1], 0,
-                     (unsigned int)((n - qp1) + 1) * sizeof(double));
+            for (j = qp1; j <= n; j++) {
+              work_data[j - 1] = 0.0;
             }
             for (j = qp1; j < 4; j++) {
-              c_xaxpy(nmq - 1, e[j - 1], A_data, n * (j - 1) + 2, work_data);
+              c_xaxpy(nmq, e[j - 1], A, n * (j - 1) + 2, work);
+              work_data = work->data;
             }
             for (j = qp1; j < 4; j++) {
-              d_xaxpy(nmq - 1, -e[j - 1] / e[1], work_data, A_data,
-                      n * (j - 1) + 2);
+              d_xaxpy(nmq, -e[j - 1] / e[1], work, A, n * (j - 1) + 2);
+              A_data = A->data;
             }
           }
         }
@@ -233,153 +256,161 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
         }
       }
     }
-    if (A_size[0] + 1 >= 3) {
-      m = 2;
+    if (A->size[0] + 1 >= 3) {
+      m = 3;
     } else {
-      m = A_size[0];
+      m = A->size[0] + 1;
     }
     if (nct < 3) {
-      s_data[nct] = A_data[nct + A_size[0] * nct];
+      s_data[nct] = A_data[nct + A->size[0] * nct];
     }
-    if (A_size[0] < m + 1) {
-      s_data[m] = 0.0;
+    if (A->size[0] < m) {
+      s_data[m - 1] = 0.0;
     }
-    if (nrt < m) {
-      e[nrt] = A_data[nrt + A_size[0] * m];
+    if (nrt + 1 < m) {
+      e[nrt] = A_data[nrt + A->size[0] * (m - 1)];
     }
-    e[m] = 0.0;
+    e[m - 1] = 0.0;
     if (nct + 1 <= S_size) {
       for (j = nctp1; j <= S_size; j++) {
-        for (q = 0; q < n; q++) {
-          U_data[q + U_size[0] * (j - 1)] = 0.0;
+        for (k = 0; k < n; k++) {
+          U_data[k + U->size[0] * (j - 1)] = 0.0;
         }
-        U_data[(j + U_size[0] * (j - 1)) - 1] = 1.0;
+        U_data[(j + U->size[0] * (j - 1)) - 1] = 1.0;
       }
     }
     for (q = nct; q >= 1; q--) {
       qp1 = q + 1;
       nmq = n - q;
-      vectorUB = n * (q - 1);
-      qq = (q + vectorUB) - 1;
+      qq = (q + n * (q - 1)) - 1;
       if (s_data[q - 1] != 0.0) {
         for (j = qp1; j <= S_size; j++) {
           ns = q + n * (j - 1);
-          xaxpy(nmq + 1,
-                -(xdotc(nmq + 1, U_data, qq + 1, U_data, ns) / U_data[qq]),
-                qq + 1, U_data, ns);
+          nrm = 0.0;
+          if (nmq >= 0) {
+            for (k = 0; k <= nmq; k++) {
+              nrm += U_data[qq + k] * U_data[(ns + k) - 1];
+            }
+          }
+          nrm = -(nrm / U_data[qq]);
+          xaxpy(nmq + 1, nrm, qq + 1, U, ns);
+          U_data = U->data;
         }
-        b_vectorUB = (((nmq + 1) / 2) << 1) + q;
-        ns = b_vectorUB - 2;
-        for (j = q; j <= ns; j += 2) {
-          qs = (j + vectorUB) - 1;
-          r = _mm_loadu_pd(&U_data[qs]);
-          _mm_storeu_pd(&U_data[qs], _mm_mul_pd(r, _mm_set1_pd(-1.0)));
+        ns = (((nmq + 1) / 2) << 1) + q;
+        iy = ns - 2;
+        for (j = q; j <= iy; j += 2) {
+          r = _mm_loadu_pd(&U_data[(j + U->size[0] * (q - 1)) - 1]);
+          _mm_storeu_pd(&U_data[(j + U->size[0] * (q - 1)) - 1],
+                        _mm_mul_pd(r, _mm_set1_pd(-1.0)));
         }
-        for (j = b_vectorUB; j <= n; j++) {
-          ns = (j + vectorUB) - 1;
-          U_data[ns] = -U_data[ns];
+        for (j = ns; j <= n; j++) {
+          U_data[(j + U->size[0] * (q - 1)) - 1] =
+              -U_data[(j + U->size[0] * (q - 1)) - 1];
         }
         U_data[qq]++;
         for (j = 0; j <= q - 2; j++) {
-          U_data[j + vectorUB] = 0.0;
+          U_data[j + U->size[0] * (q - 1)] = 0.0;
         }
       } else {
-        if (n - 1 >= 0) {
-          memset(&U_data[vectorUB], 0, (unsigned int)n * sizeof(double));
+        for (j = 0; j < n; j++) {
+          U_data[j + U->size[0] * (q - 1)] = 0.0;
         }
         U_data[qq] = 1.0;
       }
     }
     for (j = 2; j >= 0; j--) {
       if ((j + 1 <= nrt) && (e[0] != 0.0)) {
-        b_xaxpy(-(b_xdotc(Vf, Vf, 5) / Vf[1]), Vf, 5);
-        b_xaxpy(-(b_xdotc(Vf, Vf, 8) / Vf[1]), Vf, 8);
+        b_xaxpy(-(xdotc(Vf, Vf, 5) / Vf[1]), Vf, 5);
+        b_xaxpy(-(xdotc(Vf, Vf, 8) / Vf[1]), Vf, 8);
       }
       Vf[3 * j] = 0.0;
       Vf[3 * j + 1] = 0.0;
       Vf[3 * j + 2] = 0.0;
       Vf[j + 3 * j] = 1.0;
     }
-    qq = m;
-    iter = 0;
-    snorm = 0.0;
-    for (q = 0; q <= m; q++) {
-      nrm = s_data[q];
+    nctp1 = (unsigned char)m;
+    for (k = 0; k < nctp1; k++) {
+      nrm = s_data[k];
       if (nrm != 0.0) {
         rt = fabs(nrm);
         nrm /= rt;
-        s_data[q] = rt;
-        if (q < m) {
-          e[q] /= nrm;
+        s_data[k] = rt;
+        if (k + 1 < m) {
+          e[k] /= nrm;
         }
-        if (q + 1 <= n) {
-          ns = n * q;
-          qs = ns + n;
-          b_vectorUB = ((((qs - ns) / 2) << 1) + ns) + 1;
-          vectorUB = b_vectorUB - 2;
-          for (j = ns + 1; j <= vectorUB; j += 2) {
+        if (k + 1 <= n) {
+          ns = n * k;
+          iy = ns + n;
+          qq = ((((iy - ns) / 2) << 1) + ns) + 1;
+          ix = qq - 2;
+          for (j = ns + 1; j <= ix; j += 2) {
             r = _mm_loadu_pd(&U_data[j - 1]);
             _mm_storeu_pd(&U_data[j - 1], _mm_mul_pd(_mm_set1_pd(nrm), r));
           }
-          for (j = b_vectorUB; j <= qs; j++) {
+          for (j = qq; j <= iy; j++) {
             U_data[j - 1] *= nrm;
           }
         }
       }
-      if (q < m) {
-        nrm = e[q];
+      if (k + 1 < m) {
+        nrm = e[k];
         if (nrm != 0.0) {
           rt = fabs(nrm);
           nrm = rt / nrm;
-          e[q] = rt;
-          s_data[q + 1] *= nrm;
-          ns = 3 * (q + 1);
-          qs = ns + 3;
-          b_vectorUB = ns + 3;
-          vectorUB = ns + 1;
-          for (j = ns + 1; j <= vectorUB; j += 2) {
+          e[k] = rt;
+          s_data[k + 1] *= nrm;
+          ns = 3 * (k + 1);
+          iy = ns + 3;
+          qq = ns + 3;
+          ix = ns + 1;
+          for (j = ns + 1; j <= ix; j += 2) {
             r = _mm_loadu_pd(&Vf[j - 1]);
             _mm_storeu_pd(&Vf[j - 1], _mm_mul_pd(_mm_set1_pd(nrm), r));
           }
-          for (j = b_vectorUB; j <= qs; j++) {
+          for (j = qq; j <= iy; j++) {
             Vf[j - 1] *= nrm;
           }
         }
       }
-      snorm = fmax(snorm, fmax(fabs(s_data[q]), fabs(e[q])));
     }
-    while ((m + 1 > 0) && (iter < 75)) {
+    nmq = m;
+    iter = 0;
+    snorm = 0.0;
+    for (j = 0; j < nctp1; j++) {
+      snorm = fmax(snorm, fmax(fabs(s_data[j]), fabs(e[j])));
+    }
+    while ((m > 0) && (iter < 75)) {
       boolean_T exitg1;
-      qq_tmp = m;
+      nctp1 = m - 1;
       exitg1 = false;
-      while (!(exitg1 || (qq_tmp == 0))) {
-        nrm = fabs(e[qq_tmp - 1]);
+      while (!(exitg1 || (nctp1 == 0))) {
+        nrm = fabs(e[nctp1 - 1]);
         if ((nrm <= 2.2204460492503131E-16 *
-                        (fabs(s_data[qq_tmp - 1]) + fabs(s_data[qq_tmp]))) ||
+                        (fabs(s_data[nctp1 - 1]) + fabs(s_data[nctp1]))) ||
             (nrm <= 1.0020841800044864E-292) ||
             ((iter > 20) && (nrm <= 2.2204460492503131E-16 * snorm))) {
-          e[qq_tmp - 1] = 0.0;
+          e[nctp1 - 1] = 0.0;
           exitg1 = true;
         } else {
-          qq_tmp--;
+          nctp1--;
         }
       }
-      if (qq_tmp == m) {
+      if (nctp1 == m - 1) {
         ns = 4;
       } else {
-        qs = m + 1;
-        ns = m + 1;
+        iy = m;
+        ns = m;
         exitg1 = false;
-        while ((!exitg1) && (ns >= qq_tmp)) {
-          qs = ns;
-          if (ns == qq_tmp) {
+        while ((!exitg1) && (ns >= nctp1)) {
+          iy = ns;
+          if (ns == nctp1) {
             exitg1 = true;
           } else {
             nrm = 0.0;
-            if (ns < m + 1) {
+            if (ns < m) {
               nrm = fabs(e[ns - 1]);
             }
-            if (ns > qq_tmp + 1) {
+            if (ns > nctp1 + 1) {
               nrm += fabs(e[ns - 2]);
             }
             rt = fabs(s_data[ns - 1]);
@@ -392,50 +423,63 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
             }
           }
         }
-        if (qs == qq_tmp) {
+        if (iy == nctp1) {
           ns = 3;
-        } else if (qs == m + 1) {
+        } else if (iy == m) {
           ns = 1;
         } else {
           ns = 2;
-          qq_tmp = qs;
+          nctp1 = iy;
         }
       }
       switch (ns) {
       case 1:
-        f = e[m - 1];
-        e[m - 1] = 0.0;
-        for (j = m; j >= qq_tmp + 1; j--) {
+        f = e[m - 2];
+        e[m - 2] = 0.0;
+        ns = m - 1;
+        for (j = ns; j >= nctp1 + 1; j--) {
           rt = xrotg(&s_data[j - 1], &f, &nrm);
-          if (j > qq_tmp + 1) {
+          if (j > nctp1 + 1) {
             f = -nrm * e[0];
             e[0] *= rt;
           }
-          xrot(Vf, 3 * (j - 1) + 1, 3 * m + 1, rt, nrm);
+          xrot(Vf, 3 * (j - 1) + 1, 3 * (m - 1) + 1, rt, nrm);
         }
         break;
       case 2:
-        f = e[qq_tmp - 1];
-        e[qq_tmp - 1] = 0.0;
-        for (j = qq_tmp + 1; j <= m + 1; j++) {
-          rt = xrotg(&s_data[j - 1], &f, &nrm);
-          b = e[j - 1];
-          f = -nrm * b;
-          e[j - 1] = b * rt;
-          b_xrot(n, U_data, n * (j - 1) + 1, n * (qq_tmp - 1) + 1, rt, nrm);
+        f = e[nctp1 - 1];
+        e[nctp1 - 1] = 0.0;
+        for (j = nctp1 + 1; j <= m; j++) {
+          sqds = xrotg(&s_data[j - 1], &f, &b);
+          nrm = e[j - 1];
+          f = -b * nrm;
+          e[j - 1] = nrm * sqds;
+          if (n >= 1) {
+            ns = n * (j - 1);
+            qq = n * (nctp1 - 1);
+            for (k = 0; k < n; k++) {
+              ix = qq + k;
+              nrm = U_data[ix];
+              iy = ns + k;
+              rt = U_data[iy];
+              U_data[ix] = sqds * nrm - b * rt;
+              U_data[iy] = sqds * rt + b * nrm;
+            }
+          }
         }
         break;
       case 3: {
         double scale;
         nrm = s_data[m - 1];
-        rt = e[m - 1];
-        scale = fmax(fmax(fmax(fmax(fabs(s_data[m]), fabs(nrm)), fabs(rt)),
-                          fabs(s_data[qq_tmp])),
-                     fabs(e[qq_tmp]));
-        sm = s_data[m] / scale;
-        nrm /= scale;
-        rt /= scale;
-        sqds = s_data[qq_tmp] / scale;
+        rt = s_data[m - 2];
+        b = e[m - 2];
+        scale = fmax(
+            fmax(fmax(fmax(fabs(nrm), fabs(rt)), fabs(b)), fabs(s_data[nctp1])),
+            fabs(e[nctp1]));
+        sm = nrm / scale;
+        nrm = rt / scale;
+        rt = b / scale;
+        sqds = s_data[nctp1] / scale;
         b = ((nrm + sm) * (nrm - sm) + rt * rt) / 2.0;
         nrm = sm * rt;
         nrm *= nrm;
@@ -449,10 +493,10 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
           rt = 0.0;
         }
         f = (sqds + sm) * (sqds - sm) + rt;
-        nrm = sqds * (e[qq_tmp] / scale);
-        for (j = qq_tmp + 1; j <= m; j++) {
-          b = xrotg(&f, &nrm, &sm);
-          if (j > qq_tmp + 1) {
+        sqds *= e[nctp1] / scale;
+        for (j = nctp1 + 1; j < m; j++) {
+          b = xrotg(&f, &sqds, &sm);
+          if (j > nctp1 + 1) {
             e[0] = f;
           }
           nrm = e[j - 1];
@@ -462,44 +506,61 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
           s_data[j] *= b;
           xrot(Vf, 3 * (j - 1) + 1, 3 * j + 1, b, sm);
           s_data[j - 1] = b * rt + sm * nrm;
-          rt = xrotg(&s_data[j - 1], &sqds, &b);
+          b = xrotg(&s_data[j - 1], &sqds, &sm);
           nrm = e[j - 1];
-          f = rt * nrm + b * s_data[j];
-          s_data[j] = -b * nrm + rt * s_data[j];
-          nrm = b * e[j];
-          e[j] *= rt;
+          f = b * nrm + sm * s_data[j];
+          s_data[j] = -sm * nrm + b * s_data[j];
+          sqds = sm * e[j];
+          e[j] *= b;
           if (j < n) {
-            b_xrot(n, U_data, n * (j - 1) + 1, n * j + 1, rt, b);
+            ns = n * (j - 1);
+            iy = n * j;
+            for (k = 0; k < n; k++) {
+              qq = iy + k;
+              nrm = U_data[qq];
+              ix = ns + k;
+              rt = U_data[ix];
+              U_data[qq] = b * nrm - sm * rt;
+              U_data[ix] = b * rt + sm * nrm;
+            }
           }
         }
-        e[m - 1] = f;
+        e[m - 2] = f;
         iter++;
       } break;
       default:
-        if (s_data[qq_tmp] < 0.0) {
-          s_data[qq_tmp] = -s_data[qq_tmp];
-          ns = 3 * qq_tmp;
-          qs = ns + 3;
-          b_vectorUB = ns + 3;
-          vectorUB = ns + 1;
-          for (j = ns + 1; j <= vectorUB; j += 2) {
+        if (s_data[nctp1] < 0.0) {
+          s_data[nctp1] = -s_data[nctp1];
+          ns = 3 * nctp1;
+          iy = ns + 3;
+          qq = ns + 3;
+          ix = ns + 1;
+          for (j = ns + 1; j <= ix; j += 2) {
             r = _mm_loadu_pd(&Vf[j - 1]);
             _mm_storeu_pd(&Vf[j - 1], _mm_mul_pd(r, _mm_set1_pd(-1.0)));
           }
-          for (j = b_vectorUB; j <= qs; j++) {
+          for (j = qq; j <= iy; j++) {
             Vf[j - 1] = -Vf[j - 1];
           }
         }
-        qp1 = qq_tmp + 1;
-        while ((qq_tmp + 1 < qq + 1) && (s_data[qq_tmp] < s_data[qp1])) {
-          rt = s_data[qq_tmp];
-          s_data[qq_tmp] = s_data[qp1];
+        qp1 = nctp1 + 1;
+        while ((nctp1 + 1 < nmq) && (s_data[nctp1] < s_data[qp1])) {
+          rt = s_data[nctp1];
+          s_data[nctp1] = s_data[qp1];
           s_data[qp1] = rt;
-          xswap(Vf, 3 * qq_tmp + 1, 3 * (qq_tmp + 1) + 1);
-          if (qq_tmp + 1 < n) {
-            b_xswap(n, U_data, n * qq_tmp + 1, n * (qq_tmp + 1) + 1);
+          xswap(Vf, 3 * nctp1 + 1, 3 * (nctp1 + 1) + 1);
+          if (nctp1 + 1 < n) {
+            ix = n * nctp1;
+            ns = n * (nctp1 + 1);
+            for (j = 0; j < n; j++) {
+              iy = ix + j;
+              nrm = U_data[iy];
+              qq = ns + j;
+              U_data[iy] = U_data[qq];
+              U_data[qq] = nrm;
+            }
           }
-          qq_tmp = qp1;
+          nctp1 = qp1;
           qp1++;
         }
         iter = 0;
@@ -508,6 +569,7 @@ int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
       }
     }
   }
+  emxFree_real_T(&work);
   if (S_size - 1 >= 0) {
     memcpy(&S_data[0], &s_data[0], (unsigned int)S_size * sizeof(double));
   }

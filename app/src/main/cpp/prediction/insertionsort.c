@@ -11,7 +11,7 @@
 
 /* Include files */
 #include "insertionsort.h"
-#include "predict_exercise_internal_types.h"
+#include "predict_exercise_index_internal_types.h"
 #include "rt_nonfinite.h"
 #include <math.h>
 

@@ -22,8 +22,6 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void b_xswap(int n, double x_data[], int ix0, int iy0);
-
 void xswap(double x[9], int ix0, int iy0);
 
 #ifdef __cplusplus

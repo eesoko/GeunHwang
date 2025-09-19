@@ -13,6 +13,7 @@
 #define SORTIDX_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,8 +23,9 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void merge(int idx_data[], double x_data[], int offset, int np, int nq,
-           int iwork_data[], double xwork_data[]);
+void merge_block(emxArray_int32_T *idx, emxArray_real_T *x, int offset, int n,
+                 int preSortLevel, emxArray_int32_T *iwork,
+                 emxArray_real_T *xwork);
 
 #ifdef __cplusplus
 }

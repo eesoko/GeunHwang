@@ -3,14 +3,14 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * predict_exercise_initialize.h
+ * predict_exercise_index_terminate.h
  *
- * Code generation for function 'predict_exercise_initialize'
+ * Code generation for function 'predict_exercise_index_terminate'
  *
  */
 
-#ifndef PREDICT_EXERCISE_INITIALIZE_H
-#define PREDICT_EXERCISE_INITIALIZE_H
+#ifndef PREDICT_EXERCISE_INDEX_TERMINATE_H
+#define PREDICT_EXERCISE_INDEX_TERMINATE_H
 
 /* Include files */
 #include "rtwtypes.h"
@@ -22,11 +22,11 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern void predict_exercise_initialize(void);
+extern void predict_exercise_index_terminate(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/* End of code generation (predict_exercise_initialize.h) */
+/* End of code generation (predict_exercise_index_terminate.h) */

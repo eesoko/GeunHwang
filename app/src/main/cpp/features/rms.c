@@ -19,29 +19,32 @@
 #include <math.h>
 
 /* Function Definitions */
-double rms(const double xIn_data[], int xIn_size)
+double rms(const emxArray_real_T *xIn)
 {
   emxArray_real_T *x;
+  const double *xIn_data;
   double y;
   double *x_data;
   int i;
+  int loop_ub;
   int scalarLB;
   int vectorUB;
+  xIn_data = xIn->data;
   emxInit_real_T(&x, 1);
+  loop_ub = xIn->size[0];
   scalarLB = x->size[0];
-  x->size[0] = xIn_size;
+  x->size[0] = xIn->size[0];
   emxEnsureCapacity_real_T(x, scalarLB);
   x_data = x->data;
-  scalarLB = (xIn_size / 2) << 1;
+  scalarLB = (xIn->size[0] / 2) << 1;
   vectorUB = scalarLB - 2;
   for (i = 0; i <= vectorUB; i += 2) {
     __m128d r;
     r = _mm_loadu_pd(&xIn_data[i]);
     _mm_storeu_pd(&x_data[i], _mm_mul_pd(r, r));
   }
-  for (i = scalarLB; i < xIn_size; i++) {
-    y = xIn_data[i];
-    x_data[i] = y * y;
+  for (i = scalarLB; i < loop_ub; i++) {
+    x_data[i] = xIn_data[i] * xIn_data[i];
   }
   if (x->size[0] == 0) {
     y = 0.0;

@@ -13,6 +13,7 @@
 #define SQRT_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void b_sqrt(double x_data[], const int *x_size);
+void b_sqrt(emxArray_real_T *x);
 
 #ifdef __cplusplus
 }

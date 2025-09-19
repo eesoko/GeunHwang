@@ -12,10 +12,10 @@
 /* Include files */
 #include "sum.h"
 #include "blockedSummation.h"
+#include "feature_extractor_codegen_emxutil.h"
 #include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include <emmintrin.h>
-#include <string.h>
 
 /* Function Definitions */
 double b_sum(const double x_data[], int x_size)
@@ -35,35 +35,43 @@ double b_sum(const double x_data[], int x_size)
   return y;
 }
 
-int sum(const double x_data[], const int x_size[2], double y_data[])
+void sum(const emxArray_real_T *x, emxArray_real_T *y)
 {
-  int k;
+  const double *x_data;
+  double *y_data;
+  int b_xj;
   int xj;
-  int y_size;
-  if (x_size[0] == 0) {
-    y_size = 0;
+  x_data = x->data;
+  if (x->size[0] == 0) {
+    y->size[0] = 0;
   } else {
     int scalarLB;
     int vectorUB;
-    y_size = x_size[0];
-    memcpy(&y_data[0], &x_data[0], (unsigned int)y_size * sizeof(double));
-    scalarLB = (x_size[0] / 2) << 1;
+    int vstride;
+    vstride = x->size[0];
+    scalarLB = y->size[0];
+    y->size[0] = x->size[0];
+    emxEnsureCapacity_real_T(y, scalarLB);
+    y_data = y->data;
+    for (xj = 0; xj < vstride; xj++) {
+      y_data[xj] = x_data[xj];
+    }
+    scalarLB = (x->size[0] / 2) << 1;
     vectorUB = scalarLB - 2;
-    for (k = 0; k < 2; k++) {
+    for (xj = 0; xj < 2; xj++) {
       int xoffset;
-      xoffset = (k + 1) * y_size;
-      for (xj = 0; xj <= vectorUB; xj += 2) {
+      xoffset = (xj + 1) * vstride;
+      for (b_xj = 0; b_xj <= vectorUB; b_xj += 2) {
         __m128d r;
-        r = _mm_loadu_pd(&y_data[xj]);
-        _mm_storeu_pd(&y_data[xj],
-                      _mm_add_pd(r, _mm_loadu_pd(&x_data[xoffset + xj])));
+        r = _mm_loadu_pd(&y_data[b_xj]);
+        _mm_storeu_pd(&y_data[b_xj],
+                      _mm_add_pd(r, _mm_loadu_pd(&x_data[xoffset + b_xj])));
       }
-      for (xj = scalarLB; xj < y_size; xj++) {
-        y_data[xj] += x_data[xoffset + xj];
+      for (b_xj = scalarLB; b_xj < vstride; b_xj++) {
+        y_data[b_xj] += x_data[xoffset + b_xj];
       }
     }
   }
-  return y_size;
 }
 
 /* End of code generation (sum.c) */

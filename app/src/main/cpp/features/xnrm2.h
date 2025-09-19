@@ -13,6 +13,7 @@
 #define XNRM2_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -24,7 +25,7 @@ extern "C" {
 /* Function Declarations */
 double b_xnrm2(const double x[3]);
 
-double xnrm2(int n, const double x_data[], int ix0);
+double xnrm2(int n, const emxArray_real_T *x, int ix0);
 
 #ifdef __cplusplus
 }

@@ -11,35 +11,44 @@
 
 /* Include files */
 #include "xzlangeM.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include "rt_nonfinite.h"
 #include <math.h>
 
 /* Function Definitions */
-double xzlangeM(const double x_data[], const int x_size[2])
+double xzlangeM(const emxArray_real_T *x)
 {
+  const double *x_data;
   double y;
   boolean_T b;
+  x_data = x->data;
   y = 0.0;
-  b = (x_size[0] == 0);
+  b = (x->size[0] == 0);
   if (!b) {
     int k;
-    boolean_T exitg1;
     k = 0;
-    exitg1 = false;
-    while ((!exitg1) && (k <= x_size[0] * 3 - 1)) {
-      double absxk;
-      absxk = fabs(x_data[k]);
-      if (rtIsNaN(absxk)) {
-        y = rtNaN;
-        exitg1 = true;
-      } else {
-        if (absxk > y) {
-          y = absxk;
+    int exitg1;
+    int i;
+    do {
+      exitg1 = 0;
+      i = x->size[0] * 3;
+      if (k <= i - 1) {
+        double absxk;
+        absxk = fabs(x_data[k]);
+        if (rtIsNaN(absxk)) {
+          y = rtNaN;
+          exitg1 = 1;
+        } else {
+          if (absxk > y) {
+            y = absxk;
+          }
+          k++;
         }
-        k++;
+      } else {
+        exitg1 = 1;
       }
-    }
+    } while (exitg1 == 0);
   }
   return y;
 }

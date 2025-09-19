@@ -12,8 +12,8 @@
 /* Include files */
 #include "ismember.h"
 #include "convertCodes.h"
-#include "predict_exercise_data.h"
-#include "predict_exercise_internal_types.h"
+#include "predict_exercise_index_data.h"
+#include "predict_exercise_index_internal_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Definitions */

@@ -11,6 +11,7 @@
 
 /* Include files */
 #include "introsort.h"
+#include "feature_extractor_codegen_types.h"
 #include "heapsort.h"
 #include "insertionsort.h"
 #include "rt_nonfinite.h"
@@ -26,14 +27,16 @@ typedef struct {
 #endif /* typedef_struct_T */
 
 /* Function Definitions */
-void introsort(int x_data[], int xend)
+void introsort(emxArray_int32_T *x, int xend)
 {
   struct_T frame;
   int pmax;
   int pmin;
+  int *x_data;
+  x_data = x->data;
   if (xend > 1) {
     if (xend <= 32) {
-      insertionsort(x_data, 1, xend);
+      insertionsort(x, 1, xend);
     } else {
       struct_T st_d_data[120];
       int MAXDEPTH;
@@ -67,9 +70,11 @@ void introsort(int x_data[], int xend)
         st_n--;
         pmax = frame.xend - frame.xstart;
         if (pmax + 1 <= 32) {
-          insertionsort(x_data, frame.xstart, frame.xend);
+          insertionsort(x, frame.xstart, frame.xend);
+          x_data = x->data;
         } else if (frame.depth == MAXDEPTH) {
-          b_heapsort(x_data, frame.xstart, frame.xend);
+          b_heapsort(x, frame.xstart, frame.xend);
+          x_data = x->data;
         } else {
           int xmid;
           xmid = (frame.xstart + pmax / 2) - 1;

@@ -13,6 +13,7 @@
 #define SUM_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -24,7 +25,7 @@ extern "C" {
 /* Function Declarations */
 double b_sum(const double x_data[], int x_size);
 
-int sum(const double x_data[], const int x_size[2], double y_data[]);
+void sum(const emxArray_real_T *x, emxArray_real_T *y);
 
 #ifdef __cplusplus
 }

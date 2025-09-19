@@ -13,6 +13,7 @@
 #define XZSVDC_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,8 +23,8 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-int xzsvdc(double A_data[], const int A_size[2], double U_data[], int U_size[2],
-           double S_data[], double V_data[], int V_size[2]);
+int xzsvdc(emxArray_real_T *A, emxArray_real_T *U, double S_data[],
+           double V_data[], int V_size[2]);
 
 #ifdef __cplusplus
 }

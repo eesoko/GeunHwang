@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-double b_mean(const boolean_T x_data[], int x_size);
+double b_mean(const emxArray_boolean_T *x);
 
 double mean(const emxArray_real_T *x);
 

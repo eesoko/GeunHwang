@@ -11,20 +11,23 @@
 
 /* Include files */
 #include "heapsort.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 
 /* Function Declarations */
-static void heapify(int x_data[], int idx, int xstart, int xend);
+static void heapify(emxArray_int32_T *x, int idx, int xstart, int xend);
 
 /* Function Definitions */
-static void heapify(int x_data[], int idx, int xstart, int xend)
+static void heapify(emxArray_int32_T *x, int idx, int xstart, int xend)
 {
   int cmpIdx;
   int extremum;
   int extremumIdx;
   int leftIdx;
+  int *x_data;
   boolean_T changed;
   boolean_T exitg1;
+  x_data = x->data;
   changed = true;
   extremumIdx = (idx + xstart) - 2;
   leftIdx = ((idx << 1) + xstart) - 1;
@@ -59,13 +62,16 @@ static void heapify(int x_data[], int idx, int xstart, int xend)
   }
 }
 
-void b_heapsort(int x_data[], int xstart, int xend)
+void b_heapsort(emxArray_int32_T *x, int xstart, int xend)
 {
   int idx;
   int n;
+  int *x_data;
+  x_data = x->data;
   n = xend - xstart;
   for (idx = n + 1; idx >= 1; idx--) {
-    heapify(x_data, idx, xstart, xend);
+    heapify(x, idx, xstart, xend);
+    x_data = x->data;
   }
   for (idx = 0; idx < n; idx++) {
     int t;
@@ -74,7 +80,8 @@ void b_heapsort(int x_data[], int xstart, int xend)
     t = x_data[t_tmp];
     x_data[t_tmp] = x_data[xstart - 1];
     x_data[xstart - 1] = t;
-    heapify(x_data, 1, xstart, t_tmp);
+    heapify(x, 1, xstart, t_tmp);
+    x_data = x->data;
   }
 }
 

@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void periodogram(const double x_data[], int x_size, double varargin_3,
+void periodogram(const emxArray_real_T *x, double varargin_3,
                  emxArray_real_T *Px, emxArray_real_T *w);
 
 #ifdef __cplusplus

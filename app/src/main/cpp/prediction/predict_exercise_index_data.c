@@ -3,18 +3,18 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * predict_exercise_data.c
+ * predict_exercise_index_data.c
  *
- * Code generation for function 'predict_exercise_data'
+ * Code generation for function 'predict_exercise_index_data'
  *
  */
 
 /* Include files */
-#include "predict_exercise_data.h"
+#include "predict_exercise_index_data.h"
 #include "rt_nonfinite.h"
 
 /* Variable Definitions */
-omp_nest_lock_t predict_exercise_nestLockGlobal;
+omp_nest_lock_t predict_exercise_index_nestLockGlobal;
 
 const char cv[13] = {'D', 'u', 'm', 'b', 'b', 'e', 'l',
                      'l', ' ', 'C', 'u', 'r', 'l'};
@@ -53,6 +53,6 @@ const char cv3[128] = {
 const char cv4[15] = {'w', 'e', 'i', 'g', 'h', 't', 'e', 'd',
                       'a', 'v', 'e', 'r', 'a', 'g', 'e'};
 
-boolean_T isInitialized_predict_exercise = false;
+boolean_T isInitialized_predict_exercise_index = false;
 
-/* End of code generation (predict_exercise_data.c) */
+/* End of code generation (predict_exercise_index_data.c) */

@@ -13,6 +13,7 @@
 #define HEAPSORT_H
 
 /* Include files */
+#include "feature_extractor_codegen_types.h"
 #include "rtwtypes.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void b_heapsort(int x_data[], int xstart, int xend);
+void b_heapsort(emxArray_int32_T *x, int xstart, int xend);
 
 #ifdef __cplusplus
 }

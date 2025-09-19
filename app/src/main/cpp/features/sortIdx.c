@@ -11,13 +11,26 @@
 
 /* Include files */
 #include "sortIdx.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 
+/* Function Declarations */
+static void merge(emxArray_int32_T *idx, emxArray_real_T *x, int offset, int np,
+                  int nq, emxArray_int32_T *iwork, emxArray_real_T *xwork);
+
 /* Function Definitions */
-void merge(int idx_data[], double x_data[], int offset, int np, int nq,
-           int iwork_data[], double xwork_data[])
+static void merge(emxArray_int32_T *idx, emxArray_real_T *x, int offset, int np,
+                  int nq, emxArray_int32_T *iwork, emxArray_real_T *xwork)
 {
+  double *x_data;
+  double *xwork_data;
   int j;
+  int *idx_data;
+  int *iwork_data;
+  xwork_data = xwork->data;
+  iwork_data = iwork->data;
+  x_data = x->data;
+  idx_data = idx->data;
   if (nq != 0) {
     int iout;
     int n;
@@ -60,6 +73,38 @@ void merge(int idx_data[], double x_data[], int offset, int np, int nq,
         }
       }
     } while (exitg1 == 0);
+  }
+}
+
+void merge_block(emxArray_int32_T *idx, emxArray_real_T *x, int offset, int n,
+                 int preSortLevel, emxArray_int32_T *iwork,
+                 emxArray_real_T *xwork)
+{
+  int bLen;
+  int k;
+  int nPairs;
+  nPairs = n >> preSortLevel;
+  bLen = 1 << preSortLevel;
+  while (nPairs > 1) {
+    int tailOffset;
+    if (((unsigned int)nPairs & 1U) != 0U) {
+      int nTail;
+      nPairs--;
+      tailOffset = bLen * nPairs;
+      nTail = n - tailOffset;
+      if (nTail > bLen) {
+        merge(idx, x, offset + tailOffset, bLen, nTail - bLen, iwork, xwork);
+      }
+    }
+    tailOffset = bLen << 1;
+    nPairs >>= 1;
+    for (k = 0; k < nPairs; k++) {
+      merge(idx, x, offset + k * tailOffset, bLen, bLen, iwork, xwork);
+    }
+    bLen = tailOffset;
+  }
+  if (n > bLen) {
+    merge(idx, x, offset, bLen, n - bLen, iwork, xwork);
   }
 }
 

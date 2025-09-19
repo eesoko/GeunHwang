@@ -11,6 +11,7 @@
 
 /* Include files */
 #include "xaxpy.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include <emmintrin.h>
 
@@ -23,9 +24,14 @@ void b_xaxpy(double a, double y[9], int iy0)
   }
 }
 
-void c_xaxpy(int n, double a, const double x_data[], int ix0, double y_data[])
+void c_xaxpy(int n, double a, const emxArray_real_T *x, int ix0,
+             emxArray_real_T *y)
 {
+  const double *x_data;
+  double *y_data;
   int k;
+  y_data = y->data;
+  x_data = x->data;
   if ((n >= 1) && (!(a == 0.0))) {
     int scalarLB;
     int vectorUB;
@@ -45,9 +51,14 @@ void c_xaxpy(int n, double a, const double x_data[], int ix0, double y_data[])
   }
 }
 
-void d_xaxpy(int n, double a, const double x_data[], double y_data[], int iy0)
+void d_xaxpy(int n, double a, const emxArray_real_T *x, emxArray_real_T *y,
+             int iy0)
 {
+  const double *x_data;
+  double *y_data;
   int k;
+  y_data = y->data;
+  x_data = x->data;
   if ((n >= 1) && (!(a == 0.0))) {
     int scalarLB;
     int vectorUB;
@@ -69,9 +80,11 @@ void d_xaxpy(int n, double a, const double x_data[], double y_data[], int iy0)
   }
 }
 
-void xaxpy(int n, double a, int ix0, double y_data[], int iy0)
+void xaxpy(int n, double a, int ix0, emxArray_real_T *y, int iy0)
 {
+  double *y_data;
   int k;
+  y_data = y->data;
   if ((n >= 1) && (!(a == 0.0))) {
     for (k = 0; k < n; k++) {
       int i;

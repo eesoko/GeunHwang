@@ -3,14 +3,14 @@
  * course requirements at degree granting institutions only.  Not for
  * government, commercial, or other organizational use.
  *
- * predict_exercise.h
+ * minOrMax.h
  *
- * Code generation for function 'predict_exercise'
+ * Code generation for function 'minOrMax'
  *
  */
 
-#ifndef PREDICT_EXERCISE_H
-#define PREDICT_EXERCISE_H
+#ifndef MINORMAX_H
+#define MINORMAX_H
 
 /* Include files */
 #include "rtwtypes.h"
@@ -22,11 +22,11 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern int predict_exercise(const double input_features[32]);
+double maximum(const double x[6], int *idx);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-/* End of code generation (predict_exercise.h) */
+/* End of code generation (minOrMax.h) */

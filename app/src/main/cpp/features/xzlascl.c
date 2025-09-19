@@ -11,18 +11,21 @@
 
 /* Include files */
 #include "xzlascl.h"
+#include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
 #include <emmintrin.h>
 #include <math.h>
 
 /* Function Definitions */
-void b_xzlascl(double cfrom, double cto, int m, double A_data[], int lda)
+void b_xzlascl(double cfrom, double cto, int m, emxArray_real_T *A, int lda)
 {
   double cfromc;
   double ctoc;
-  int b_i;
+  double *A_data;
+  int i;
   int j;
   boolean_T notdone;
+  A_data = A->data;
   cfromc = cfrom;
   ctoc = cto;
   notdone = true;
@@ -30,9 +33,6 @@ void b_xzlascl(double cfrom, double cto, int m, double A_data[], int lda)
     double cfrom1;
     double cto1;
     double mul;
-    int i;
-    int scalarLB;
-    int vectorUB;
     cfrom1 = cfromc * 2.0041683600089728E-292;
     cto1 = ctoc / 4.9896007738368E+291;
     if ((fabs(cfrom1) > fabs(ctoc)) && (ctoc != 0.0)) {
@@ -45,22 +45,13 @@ void b_xzlascl(double cfrom, double cto, int m, double A_data[], int lda)
       mul = ctoc / cfromc;
       notdone = false;
     }
-    i = (unsigned char)m;
-    scalarLB = ((unsigned char)m >> 1) << 1;
-    vectorUB = scalarLB - 2;
     for (j = 0; j < 3; j++) {
-      int i1;
       int offset;
       offset = j * lda - 1;
-      for (b_i = 0; b_i <= vectorUB; b_i += 2) {
-        __m128d r;
-        i1 = (offset + b_i) + 1;
-        r = _mm_loadu_pd(&A_data[i1]);
-        _mm_storeu_pd(&A_data[i1], _mm_mul_pd(r, _mm_set1_pd(mul)));
-      }
-      for (b_i = scalarLB; b_i < i; b_i++) {
-        i1 = (offset + b_i) + 1;
-        A_data[i1] *= mul;
+      for (i = 0; i < m; i++) {
+        int b_i;
+        b_i = (offset + i) + 1;
+        A_data[b_i] *= mul;
       }
     }
   }
