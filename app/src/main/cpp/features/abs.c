@@ -14,7 +14,6 @@
 #include "feature_extractor_codegen_emxutil.h"
 #include "feature_extractor_codegen_types.h"
 #include "rt_nonfinite.h"
-#include "omp.h"
 #include <math.h>
 
 /* Function Definitions */
@@ -31,16 +30,8 @@ void b_abs(const emxArray_real_T *x, emxArray_real_T *y)
   y->size[0] = x->size[0];
   emxEnsureCapacity_real_T(y, i);
   y_data = y->data;
-  if (x->size[0] < 1600) {
-    for (k = 0; k < nx; k++) {
-      y_data[k] = fabs(x_data[k]);
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (k = 0; k < nx; k++) {
-      y_data[k] = fabs(x_data[k]);
-    }
+  for (k = 0; k < nx; k++) {
+    y_data[k] = fabs(x_data[k]);
   }
 }
 

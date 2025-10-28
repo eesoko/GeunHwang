@@ -16,7 +16,6 @@
 #include "feature_extractor_codegen_types.h"
 #include "introsort.h"
 #include "rt_nonfinite.h"
-#include "omp.h"
 #include "rt_nonfinite.h"
 #include <math.h>
 
@@ -39,12 +38,11 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
   double *Xpk_data;
   double *Ypk_data;
   int b_k;
-  int i;
   int k;
   int kfirst;
-  int loop_ub;
   int nInf;
   int nPk;
+  int q;
   int qEnd;
   int *c_data;
   int *iPk_data;
@@ -56,31 +54,22 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
   boolean_T *idelete_data;
   Yin_data = Yin->data;
   emxInit_uint32_T(&x);
-  loop_ub = Yin->size[0];
+  q = Yin->size[0];
   kfirst = x->size[0];
   x->size[0] = Yin->size[0];
   emxEnsureCapacity_uint32_T(x, kfirst);
   x_data = x->data;
-  kfirst = Yin->size[0];
-  if (Yin->size[0] < 1600) {
-    for (i = 0; i < loop_ub; i++) {
-      x_data[i] = (unsigned int)i + 1U;
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (i = 0; i < kfirst; i++) {
-      x_data[i] = (unsigned int)i + 1U;
-    }
+  for (k = 0; k < q; k++) {
+    x_data[k] = (unsigned int)k + 1U;
   }
   emxInit_int32_T(&idx, 1);
   kfirst = idx->size[0];
-  idx->size[0] = loop_ub;
+  idx->size[0] = Yin->size[0];
   emxEnsureCapacity_int32_T(idx, kfirst);
   idx_data = idx->data;
   emxInit_int32_T(&iInfinite, 1);
   kfirst = iInfinite->size[0];
-  iInfinite->size[0] = loop_ub;
+  iInfinite->size[0] = Yin->size[0];
   emxEnsureCapacity_int32_T(iInfinite, kfirst);
   iPk_data = iInfinite->data;
   emxInit_int32_T(&sortIdx, 1);
@@ -90,7 +79,7 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
   kfirst = 0;
   ykfirst = rtInf;
   isinfykfirst = true;
-  for (k = 1; k <= loop_ub; k++) {
+  for (k = 1; k <= q; k++) {
     double yk;
     boolean_T isinfyk;
     yk = Yin_data[k - 1];
@@ -187,10 +176,10 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
       idx_data[k] = iPk_data[k];
     }
   } else {
-    int b_i;
-    int b_loop_ub;
+    int i;
+    int loop_ub;
     int n;
-    b_loop_ub = c->size[0];
+    loop_ub = c->size[0];
     kfirst = sortIdx->size[0];
     sortIdx->size[0] = c->size[0];
     emxEnsureCapacity_int32_T(sortIdx, kfirst);
@@ -214,70 +203,69 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
     if (((unsigned int)c->size[0] & 1U) != 0U) {
       sortIdx_data[c->size[0] - 1] = c->size[0];
     }
-    b_i = 2;
-    while (b_i < n - 1) {
+    i = 2;
+    while (i < n - 1) {
       int i2;
       int j;
-      i2 = b_i << 1;
+      i2 = i << 1;
       j = 1;
-      for (kfirst = b_i + 1; kfirst < n; kfirst = qEnd + b_i) {
-        int c_k;
+      for (kfirst = i + 1; kfirst < n; kfirst = qEnd + i) {
         int kEnd;
         nInf = j - 1;
-        nPk = kfirst;
+        q = kfirst;
         qEnd = j + i2;
         if (qEnd > n) {
           qEnd = n;
         }
-        c_k = 0;
+        nPk = 0;
         kEnd = qEnd - j;
-        while (c_k < kEnd) {
-          int i1;
+        while (nPk < kEnd) {
+          int b_i;
           ykfirst = Yin_data[c_data[sortIdx_data[nInf] - 1] - 1];
-          i1 = sortIdx_data[nPk - 1];
-          if ((ykfirst >= Yin_data[c_data[i1 - 1] - 1]) || rtIsNaN(ykfirst)) {
-            iPk_data[c_k] = sortIdx_data[nInf];
+          b_i = sortIdx_data[q - 1];
+          if ((ykfirst >= Yin_data[c_data[b_i - 1] - 1]) || rtIsNaN(ykfirst)) {
+            iPk_data[nPk] = sortIdx_data[nInf];
             nInf++;
             if (nInf + 1 == kfirst) {
-              while (nPk < qEnd) {
-                c_k++;
-                iPk_data[c_k] = sortIdx_data[nPk - 1];
+              while (q < qEnd) {
                 nPk++;
+                iPk_data[nPk] = sortIdx_data[q - 1];
+                q++;
               }
             }
           } else {
-            iPk_data[c_k] = i1;
-            nPk++;
-            if (nPk == qEnd) {
+            iPk_data[nPk] = b_i;
+            q++;
+            if (q == qEnd) {
               while (nInf + 1 < kfirst) {
-                c_k++;
-                iPk_data[c_k] = sortIdx_data[nInf];
+                nPk++;
+                iPk_data[nPk] = sortIdx_data[nInf];
                 nInf++;
               }
             }
           }
-          c_k++;
+          nPk++;
         }
         for (b_k = 0; b_k < kEnd; b_k++) {
           sortIdx_data[(j + b_k) - 1] = iPk_data[b_k];
         }
         j = qEnd;
       }
-      b_i = i2;
+      i = i2;
     }
     kfirst = idelete->size[0];
     idelete->size[0] = c->size[0];
     emxEnsureCapacity_boolean_T(idelete, kfirst);
     idelete_data = idelete->data;
-    for (k = 0; k < b_loop_ub; k++) {
+    for (k = 0; k < loop_ub; k++) {
       idelete_data[k] = false;
     }
-    for (k = 0; k < b_loop_ub; k++) {
+    for (k = 0; k < loop_ub; k++) {
       if (!idelete_data[k]) {
-        for (b_k = 0; b_k < b_loop_ub; b_k++) {
+        for (b_k = 0; b_k < loop_ub; b_k++) {
           unsigned int b_idelete_tmp;
           unsigned int idelete_tmp;
-          kfirst = (b_loop_ub - b_k) - 1;
+          kfirst = (loop_ub - b_k) - 1;
           idelete_tmp = x_data[c_data[sortIdx_data[kfirst] - 1] - 1];
           b_idelete_tmp = x_data[c_data[sortIdx_data[k] - 1] - 1];
           idelete_data[kfirst] =
@@ -289,7 +277,7 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
       }
     }
     nInf = 0;
-    for (k = 0; k < b_loop_ub; k++) {
+    for (k = 0; k < loop_ub; k++) {
       if (!idelete_data[k]) {
         nInf++;
       }
@@ -299,7 +287,7 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
     emxEnsureCapacity_int32_T(r, kfirst);
     iPk_data = r->data;
     kfirst = 0;
-    for (k = 0; k < b_loop_ub; k++) {
+    for (k = 0; k < loop_ub; k++) {
       if (!idelete_data[k]) {
         iPk_data[kfirst] = k;
         kfirst++;
@@ -325,10 +313,10 @@ void findpeaks(const emxArray_real_T *Yin, double varargin_2,
   emxFree_uint32_T(&x);
   if (idx->size[0] > Yin->size[0]) {
     kfirst = sortIdx->size[0];
-    sortIdx->size[0] = loop_ub;
+    sortIdx->size[0] = Yin->size[0];
     emxEnsureCapacity_int32_T(sortIdx, kfirst);
     kfirst = idx->size[0];
-    idx->size[0] = loop_ub;
+    idx->size[0] = Yin->size[0];
     emxEnsureCapacity_int32_T(idx, kfirst);
     idx_data = idx->data;
   } else {

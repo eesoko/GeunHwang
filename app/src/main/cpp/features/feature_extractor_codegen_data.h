@@ -14,13 +14,8 @@
 
 /* Include files */
 #include "rtwtypes.h"
-#include "omp.h"
 #include <stddef.h>
 #include <stdlib.h>
-
-/* Variable Declarations */
-extern omp_nest_lock_t feature_extractor_codegen_nestLockGlobal;
-extern boolean_T isInitialized_feature_extractor_codegen;
 
 #endif
 /* End of code generation (feature_extractor_codegen_data.h) */

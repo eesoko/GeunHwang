@@ -18,11 +18,28 @@ import com.example.geunhwang.presentation.ui.theme.GeunHwangTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val activity = this
+
         setContent {
             GeunHwangTheme {
-                val viewModel: MainViewModel = viewModel()
+                val viewModel: MainViewModel = viewModel<MainViewModel>(
+                    factory = MainViewModel.Factory(activity)
+                )
                 WearAppV2Navigation(viewModel = viewModel)
             }
+        }
+    }
+    internal fun predictMotionNative(sensorData: Array<FloatArray>, fs: Double): String {
+        return predictMotionNativeJNI(sensorData, fs)
+    }
+
+    private external fun predictMotionNativeJNI(sensorData: Array<FloatArray>, fs: Double): String
+
+    // 네이티브 라이브러리를 로드합니다.
+    companion object {
+        init {
+            System.loadLibrary("native-lib")
         }
     }
 }

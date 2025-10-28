@@ -13,9 +13,7 @@
 #include "feature_extractor_codegen.h"
 #include "abs.h"
 #include "corrcoef.h"
-#include "feature_extractor_codegen_data.h"
 #include "feature_extractor_codegen_emxutil.h"
-#include "feature_extractor_codegen_initialize.h"
 #include "feature_extractor_codegen_types.h"
 #include "findpeaks.h"
 #include "geomean.h"
@@ -33,7 +31,6 @@
 #include "sum.h"
 #include "trapz.h"
 #include "var.h"
-#include "omp.h"
 #include <emmintrin.h>
 #include <math.h>
 
@@ -81,18 +78,9 @@ static void binary_expand_op(double in1[32], const emxArray_real_T *in2,
   b_in2_data = b_in2->data;
   stride_0_0 = (in2->size[0] != 1);
   stride_1_0 = (in3->size[0] != 1);
-  if (loop_ub < 1600) {
-    for (i = 0; i < loop_ub; i++) {
-      b_in2_data[i] = ((in2_data[i * stride_0_0] > 0.15) ||
-                       (in3_data[i * stride_1_0] > 0.43633231299858238));
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (i = 0; i < loop_ub; i++) {
-      b_in2_data[i] = ((in2_data[i * stride_0_0] > 0.15) ||
-                       (in3_data[i * stride_1_0] > 0.43633231299858238));
-    }
+  for (i = 0; i < loop_ub; i++) {
+    b_in2_data[i] = ((in2_data[i * stride_0_0] > 0.15) ||
+                     (in3_data[i * stride_1_0] > 0.43633231299858238));
   }
   in1[26] = b_mean(b_in2);
   emxFree_boolean_T(&b_in2);
@@ -105,12 +93,10 @@ static void binary_expand_op_1(emxArray_real_T *in1, const emxArray_real_T *in3,
   emxArray_real_T *r;
   const double *in3_data;
   const double *in4_data;
-  double b_varargin_1;
   double *b_in3_data;
   double *r1;
   int i;
   int i1;
-  int i2;
   int in4_idx_0;
   int loop_ub;
   int stride_0_0;
@@ -131,24 +117,11 @@ static void binary_expand_op_1(emxArray_real_T *in1, const emxArray_real_T *in3,
   b_in3_data = b_in3->data;
   stride_0_0 = (in3->size[0] != 1);
   stride_1_0 = (in4_idx_0 != 1);
-  in4_idx_0 = (3 * loop_ub < 1600);
-  if (in4_idx_0) {
-    for (i = 0; i < 3; i++) {
-      for (i1 = 0; i1 < loop_ub; i1++) {
-        b_in3_data[i1 + b_in3->size[0] * i] =
-            in3_data[i1 * stride_0_0 + in3->size[0] * i] -
-            in4_data[i1 * stride_1_0] * in5[i];
-      }
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(i1)
-
-    for (i = 0; i < 3; i++) {
-      for (i1 = 0; i1 < loop_ub; i1++) {
-        b_in3_data[i1 + b_in3->size[0] * i] =
-            in3_data[i1 * stride_0_0 + in3->size[0] * i] -
-            in4_data[i1 * stride_1_0] * in5[i];
-      }
+  for (i = 0; i < 3; i++) {
+    for (i1 = 0; i1 < loop_ub; i1++) {
+      b_in3_data[i1 + b_in3->size[0] * i] =
+          in3_data[i1 * stride_0_0 + in3->size[0] * i] -
+          in4_data[i1 * stride_1_0] * in5[i];
     }
   }
   emxInit_real_T(&r, 2);
@@ -158,20 +131,10 @@ static void binary_expand_op_1(emxArray_real_T *in1, const emxArray_real_T *in3,
   emxEnsureCapacity_real_T(r, stride_1_0);
   r1 = r->data;
   stride_1_0 = b_in3->size[0] * 3;
-  if (in4_idx_0) {
-    for (i2 = 0; i2 < stride_1_0; i2++) {
-      double varargin_1;
-      varargin_1 = b_in3_data[i2];
-      r1[i2] = varargin_1 * varargin_1;
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(           \
-        b_varargin_1)
-
-    for (i2 = 0; i2 < stride_1_0; i2++) {
-      b_varargin_1 = b_in3_data[i2];
-      r1[i2] = b_varargin_1 * b_varargin_1;
-    }
+  for (i = 0; i < stride_1_0; i++) {
+    double varargin_1;
+    varargin_1 = b_in3_data[i];
+    r1[i] = varargin_1 * varargin_1;
   }
   emxFree_real_T(&b_in3);
   sum(r, in1);
@@ -212,18 +175,9 @@ static void binary_expand_op_2(double in1[32], const emxArray_real_T *in2,
   stride_0_0 = (in2->size[0] != 1);
   stride_1_0 = (in3->size[0] != 1);
   stride_2_0 = (in4->size[0] != 1);
-  if (loop_ub < 1600) {
-    for (i = 0; i < loop_ub; i++) {
-      b_in2_data[i] = (in2_data[i * stride_0_0] + in3_data[i * stride_1_0]) +
-                      in4_data[i * stride_2_0];
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (i = 0; i < loop_ub; i++) {
-      b_in2_data[i] = (in2_data[i * stride_0_0] + in3_data[i * stride_1_0]) +
-                      in4_data[i * stride_2_0];
-    }
+  for (i = 0; i < loop_ub; i++) {
+    b_in2_data[i] = (in2_data[i * stride_0_0] + in3_data[i * stride_1_0]) +
+                    in4_data[i * stride_2_0];
   }
   in1[19] = mean(b_in2);
   emxFree_real_T(&b_in2);
@@ -263,18 +217,9 @@ static void binary_expand_op_3(double in1[32], const emxArray_real_T *in2,
   stride_0_0 = (in2->size[0] != 1);
   stride_1_0 = (in3->size[0] != 1);
   stride_2_0 = (in4->size[0] != 1);
-  if (loop_ub < 1600) {
-    for (i = 0; i < loop_ub; i++) {
-      b_in2_data[i] = (in2_data[i * stride_0_0] + in3_data[i * stride_1_0]) +
-                      in4_data[i * stride_2_0];
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (i = 0; i < loop_ub; i++) {
-      b_in2_data[i] = (in2_data[i * stride_0_0] + in3_data[i * stride_1_0]) +
-                      in4_data[i * stride_2_0];
-    }
+  for (i = 0; i < loop_ub; i++) {
+    b_in2_data[i] = (in2_data[i * stride_0_0] + in3_data[i * stride_1_0]) +
+                    in4_data[i * stride_2_0];
   }
   in1[18] = mean(b_in2);
   emxFree_real_T(&b_in2);
@@ -286,13 +231,9 @@ static void binary_expand_op_4(emxArray_real_T *in1, const emxArray_real_T *in3,
   emxArray_real_T *r;
   const double *in3_data;
   const double *in5_data;
-  double d_varargin_1;
-  double e_varargin_1;
-  double f_varargin_1;
   double *in1_data;
   double *r1;
   int i;
-  int i1;
   int loop_ub;
   int stride_0_0;
   int stride_1_0;
@@ -317,35 +258,22 @@ static void binary_expand_op_4(emxArray_real_T *in1, const emxArray_real_T *in3,
   stride_0_0 = (in3->size[0] != 1);
   stride_1_0 = (in1->size[0] != 1);
   stride_2_0 = (in5->size[0] != 1);
-  if (loop_ub < 1600) {
-    for (i = 0; i < loop_ub; i++) {
-      double b_varargin_1;
-      double c_varargin_1;
-      double varargin_1;
-      varargin_1 = in3_data[i * stride_0_0] * in4;
-      b_varargin_1 = in1_data[i * stride_1_0] * in4;
-      c_varargin_1 = in5_data[i * stride_2_0] * in4;
-      r1[i] = (varargin_1 * varargin_1 + b_varargin_1 * b_varargin_1) +
-              c_varargin_1 * c_varargin_1;
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(           \
-        d_varargin_1, e_varargin_1, f_varargin_1)
-
-    for (i = 0; i < loop_ub; i++) {
-      d_varargin_1 = in3_data[i * stride_0_0] * in4;
-      e_varargin_1 = in1_data[i * stride_1_0] * in4;
-      f_varargin_1 = in5_data[i * stride_2_0] * in4;
-      r1[i] = (d_varargin_1 * d_varargin_1 + e_varargin_1 * e_varargin_1) +
-              f_varargin_1 * f_varargin_1;
-    }
+  for (i = 0; i < loop_ub; i++) {
+    double b_varargin_1;
+    double c_varargin_1;
+    double varargin_1;
+    varargin_1 = in3_data[i * stride_0_0] * in4;
+    b_varargin_1 = in1_data[i * stride_1_0] * in4;
+    c_varargin_1 = in5_data[i * stride_2_0] * in4;
+    r1[i] = (varargin_1 * varargin_1 + b_varargin_1 * b_varargin_1) +
+            c_varargin_1 * c_varargin_1;
   }
   stride_0_0 = in1->size[0];
   in1->size[0] = loop_ub;
   emxEnsureCapacity_real_T(in1, stride_0_0);
   in1_data = in1->data;
-  for (i1 = 0; i1 < loop_ub; i1++) {
-    in1_data[i1] = r1[i1];
+  for (i = 0; i < loop_ub; i++) {
+    in1_data[i] = r1[i];
   }
   emxFree_real_T(&r);
 }
@@ -356,8 +284,6 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   __m128d r1;
   __m128d r2;
   __m128d r3;
-  __m128d r5;
-  __m128d r6;
   emxArray_boolean_T *b_gyro_mag;
   emxArray_int32_T *y;
   emxArray_real_T *a;
@@ -382,17 +308,10 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   double latent_data[3];
   const double *raw_data_data;
   double b_varargin_1;
-  double c_varargin_1;
   double d;
   double d1;
   double d2;
-  double d_varargin_1;
-  double e_varargin_1;
-  double f_varargin_1;
   double g_norm;
-  double g_varargin_1;
-  double h_varargin_1;
-  double i_varargin_1;
   double varargin_1;
   double *ax_data;
   double *ay_data;
@@ -403,27 +322,14 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   int a__4_size[2];
   int b_i;
   int b_loop_ub;
-  int c_i;
-  int c_loop_ub;
-  int d_loop_ub;
   int i;
-  int i1;
-  int i2;
-  int i3;
-  int i4;
-  int i5;
-  int i6;
-  int i7;
-  int i8;
+  int iindx;
   int loop_ub;
-  int scalarLB;
+  int vectorUB;
   int *y_data;
   boolean_T *gyro_mag_data;
-  if (!isInitialized_feature_extractor_codegen) {
-    feature_extractor_codegen_initialize();
-  }
   raw_data_data = raw_data->data;
-  /*  =========================================================================
+  /*  ===========================================================================
    */
   /*  [ SCRIPT ]    : feature_extractor_codegen.m */
   /*  [ VERSION ]   : 3.0 */
@@ -439,39 +345,54 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   /*    codegen feature_extractor_codegen -args INPUT_ARGS -config:lib -lang:c
    * -report */
   /*  */
-  /*  =========================================================================
+  /*  === 1. 입력 타입 정의 === */
+  /*    INPUT_ARGS = {coder.typeof(0, [Inf, 6], [1, 0]), coder.typeof(0)}; */
+  /*  === 2. 설정 객체 생성 === */
+  /*    cfg = coder.config('lib');        % 정적/동적 라이브러리 생성용 설정 */
+  /*    cfg.GenerateReport = true;        % 코드 생성 리포트 만들기 */
+  /*    cfg.EnableOpenMP = false;         % OpenMP 끄기 (JNI 빌드에서 충돌 방지)
+   */
+  /*  === 3. 타겟 하드웨어를 ARM으로 명시 === */
+  /*    cfg.HardwareImplementation.ProdHWDeviceType = 'Generic->MATLAB Host
+   * Computer'; */
+  /*  === 4. 코드 생성 실행 === */
+  /*    codegen feature_extractor_codegen -args INPUT_ARGS -config cfg -lang:c
+   */
+  /*    -report */
+  /*  */
+  /*  ===========================================================================
    */
   /*  --- 0. 입력 및 상수 정의 --- */
   emxInit_real_T(&ax, 1);
   loop_ub = raw_data->size[0];
-  b_loop_ub = ax->size[0];
+  iindx = ax->size[0];
   ax->size[0] = raw_data->size[0];
-  emxEnsureCapacity_real_T(ax, b_loop_ub);
+  emxEnsureCapacity_real_T(ax, iindx);
   ax_data = ax->data;
   emxInit_real_T(&ay, 1);
-  b_loop_ub = ay->size[0];
+  iindx = ay->size[0];
   ay->size[0] = raw_data->size[0];
-  emxEnsureCapacity_real_T(ay, b_loop_ub);
+  emxEnsureCapacity_real_T(ay, iindx);
   ay_data = ay->data;
   emxInit_real_T(&az, 1);
-  b_loop_ub = az->size[0];
+  iindx = az->size[0];
   az->size[0] = raw_data->size[0];
-  emxEnsureCapacity_real_T(az, b_loop_ub);
+  emxEnsureCapacity_real_T(az, iindx);
   az_data = az->data;
   emxInit_real_T(&gx, 1);
-  b_loop_ub = gx->size[0];
+  iindx = gx->size[0];
   gx->size[0] = raw_data->size[0];
-  emxEnsureCapacity_real_T(gx, b_loop_ub);
+  emxEnsureCapacity_real_T(gx, iindx);
   gx_data = gx->data;
   emxInit_real_T(&gy, 1);
-  b_loop_ub = gy->size[0];
+  iindx = gy->size[0];
   gy->size[0] = raw_data->size[0];
-  emxEnsureCapacity_real_T(gy, b_loop_ub);
+  emxEnsureCapacity_real_T(gy, iindx);
   gy_data = gy->data;
   emxInit_real_T(&gz, 1);
-  b_loop_ub = gz->size[0];
+  iindx = gz->size[0];
   gz->size[0] = raw_data->size[0];
-  emxEnsureCapacity_real_T(gz, b_loop_ub);
+  emxEnsureCapacity_real_T(gz, iindx);
   gz_data = gz->data;
   for (i = 0; i < loop_ub; i++) {
     ax_data[i] = raw_data_data[i];
@@ -487,77 +408,48 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
     y->size[0] = 1;
     y->size[1] = 0;
   } else {
-    b_loop_ub = y->size[0] * y->size[1];
+    iindx = y->size[0] * y->size[1];
     y->size[0] = 1;
     y->size[1] = raw_data->size[0];
-    emxEnsureCapacity_int32_T(y, b_loop_ub);
+    emxEnsureCapacity_int32_T(y, iindx);
     y_data = y->data;
     for (i = 0; i < loop_ub; i++) {
       y_data[i] = i;
     }
   }
   emxInit_real_T(&t, 1);
-  c_loop_ub = y->size[1];
-  b_loop_ub = t->size[0];
-  t->size[0] = y->size[1];
-  emxEnsureCapacity_real_T(t, b_loop_ub);
-  ay_data = t->data;
   b_loop_ub = y->size[1];
-  if (y->size[1] < 1600) {
-    for (b_i = 0; b_i < c_loop_ub; b_i++) {
-      ay_data[b_i] = (double)y_data[b_i] / Fs_actual;
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (b_i = 0; b_i < b_loop_ub; b_i++) {
-      ay_data[b_i] = (double)y_data[b_i] / Fs_actual;
-    }
+  iindx = t->size[0];
+  t->size[0] = y->size[1];
+  emxEnsureCapacity_real_T(t, iindx);
+  ay_data = t->data;
+  for (i = 0; i < b_loop_ub; i++) {
+    ay_data[i] = (double)y_data[i] / Fs_actual;
   }
   emxFree_int32_T(&y);
   /*  출력 변수의 크기를 1x32로 미리 고정합니다. */
   /*  --- 기본 물리량 --- */
   emxInit_real_T(&accel_mag, 1);
-  b_loop_ub = accel_mag->size[0];
-  accel_mag->size[0] = loop_ub;
-  emxEnsureCapacity_real_T(accel_mag, b_loop_ub);
+  iindx = accel_mag->size[0];
+  accel_mag->size[0] = raw_data->size[0];
+  emxEnsureCapacity_real_T(accel_mag, iindx);
   az_data = accel_mag->data;
   emxInit_real_T(&gyro_mag, 1);
-  b_loop_ub = gyro_mag->size[0];
-  gyro_mag->size[0] = loop_ub;
-  emxEnsureCapacity_real_T(gyro_mag, b_loop_ub);
+  iindx = gyro_mag->size[0];
+  gyro_mag->size[0] = raw_data->size[0];
+  emxEnsureCapacity_real_T(gyro_mag, iindx);
   gy_data = gyro_mag->data;
-  if (raw_data->size[0] < 1600) {
-    for (i1 = 0; i1 < loop_ub; i1++) {
-      g_norm = raw_data_data[i1];
-      varargin_1 = raw_data_data[i1 + raw_data->size[0]];
-      b_varargin_1 = raw_data_data[i1 + raw_data->size[0] * 2];
-      az_data[i1] = (g_norm * g_norm + varargin_1 * varargin_1) +
-                    b_varargin_1 * b_varargin_1;
-      g_norm = raw_data_data[i1 + raw_data->size[0] * 3];
-      varargin_1 = raw_data_data[i1 + raw_data->size[0] * 4];
-      b_varargin_1 = raw_data_data[i1 + raw_data->size[0] * 5];
-      gy_data[i1] = (g_norm * g_norm + varargin_1 * varargin_1) +
-                    b_varargin_1 * b_varargin_1;
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(           \
-        c_varargin_1, d_varargin_1, e_varargin_1)
-
-    for (i1 = 0; i1 < loop_ub; i1++) {
-      c_varargin_1 = raw_data_data[i1];
-      d_varargin_1 = raw_data_data[i1 + raw_data->size[0]];
-      e_varargin_1 = raw_data_data[i1 + raw_data->size[0] * 2];
-      az_data[i1] =
-          (c_varargin_1 * c_varargin_1 + d_varargin_1 * d_varargin_1) +
-          e_varargin_1 * e_varargin_1;
-      c_varargin_1 = raw_data_data[i1 + raw_data->size[0] * 3];
-      d_varargin_1 = raw_data_data[i1 + raw_data->size[0] * 4];
-      e_varargin_1 = raw_data_data[i1 + raw_data->size[0] * 5];
-      gy_data[i1] =
-          (c_varargin_1 * c_varargin_1 + d_varargin_1 * d_varargin_1) +
-          e_varargin_1 * e_varargin_1;
-    }
+  for (i = 0; i < loop_ub; i++) {
+    g_norm = raw_data_data[i];
+    varargin_1 = raw_data_data[i + raw_data->size[0]];
+    b_varargin_1 = raw_data_data[i + raw_data->size[0] * 2];
+    az_data[i] = (g_norm * g_norm + varargin_1 * varargin_1) +
+                 b_varargin_1 * b_varargin_1;
+    g_norm = raw_data_data[i + raw_data->size[0] * 3];
+    varargin_1 = raw_data_data[i + raw_data->size[0] * 4];
+    b_varargin_1 = raw_data_data[i + raw_data->size[0] * 5];
+    gy_data[i] = (g_norm * g_norm + varargin_1 * varargin_1) +
+                 b_varargin_1 * b_varargin_1;
   }
   b_sqrt(accel_mag);
   b_sqrt(gyro_mag);
@@ -607,12 +499,12 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   emxInit_real_T(&a_perp, 1);
   periodogram(accel_mag, Fs_actual, jerk_mag, a_perp);
   ay_data = a_perp->data;
-  b_maximum(jerk_mag, &b_loop_ub);
-  features[14] = ay_data[b_loop_ub - 1];
+  b_maximum(jerk_mag, &iindx);
+  features[14] = ay_data[iindx - 1];
   periodogram(gyro_mag, Fs_actual, accel_mag, jerk_mag);
   gx_data = jerk_mag->data;
-  b_maximum(accel_mag, &b_loop_ub);
-  features[15] = gx_data[b_loop_ub - 1];
+  b_maximum(accel_mag, &iindx);
+  features[15] = gx_data[iindx - 1];
   /*  숨겨진 보석: 운동의 질(Quality) */
   emxInit_real_T(&r, 1);
   gradient(ax, r);
@@ -621,37 +513,22 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   gradient(az, accel_mag);
   az_data = accel_mag->data;
   if (r->size[0] == 1) {
-    b_loop_ub = jerk_mag->size[0];
+    iindx = jerk_mag->size[0];
   } else {
-    b_loop_ub = r->size[0];
+    iindx = r->size[0];
   }
-  if ((r->size[0] == jerk_mag->size[0]) && (b_loop_ub == accel_mag->size[0])) {
-    d_loop_ub = r->size[0];
-    b_loop_ub = jerk_mag->size[0];
-    jerk_mag->size[0] = r->size[0];
-    emxEnsureCapacity_real_T(jerk_mag, b_loop_ub);
-    gx_data = jerk_mag->data;
+  if ((r->size[0] == jerk_mag->size[0]) && (iindx == accel_mag->size[0])) {
     b_loop_ub = r->size[0];
-    if (r->size[0] < 1600) {
-      for (i2 = 0; i2 < d_loop_ub; i2++) {
-        g_norm = ay_data[i2] * Fs_actual;
-        varargin_1 = gx_data[i2] * Fs_actual;
-        b_varargin_1 = az_data[i2] * Fs_actual;
-        gx_data[i2] = (g_norm * g_norm + varargin_1 * varargin_1) +
-                      b_varargin_1 * b_varargin_1;
-      }
-    } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(           \
-        f_varargin_1, g_varargin_1, h_varargin_1)
-
-      for (i2 = 0; i2 < b_loop_ub; i2++) {
-        f_varargin_1 = ay_data[i2] * Fs_actual;
-        g_varargin_1 = gx_data[i2] * Fs_actual;
-        h_varargin_1 = az_data[i2] * Fs_actual;
-        gx_data[i2] =
-            (f_varargin_1 * f_varargin_1 + g_varargin_1 * g_varargin_1) +
-            h_varargin_1 * h_varargin_1;
-      }
+    iindx = jerk_mag->size[0];
+    jerk_mag->size[0] = r->size[0];
+    emxEnsureCapacity_real_T(jerk_mag, iindx);
+    gx_data = jerk_mag->data;
+    for (i = 0; i < b_loop_ub; i++) {
+      g_norm = ay_data[i] * Fs_actual;
+      varargin_1 = gx_data[i] * Fs_actual;
+      b_varargin_1 = az_data[i] * Fs_actual;
+      gx_data[i] = (g_norm * g_norm + varargin_1 * varargin_1) +
+                   b_varargin_1 * b_varargin_1;
     }
   } else {
     binary_expand_op_4(jerk_mag, r, Fs_actual, accel_mag);
@@ -668,21 +545,21 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   az_data = accel_mag->data;
   emxFree_real_T(&az);
   if (r->size[0] == 1) {
-    b_loop_ub = jerk_mag->size[0];
+    iindx = jerk_mag->size[0];
   } else {
-    b_loop_ub = r->size[0];
+    iindx = r->size[0];
   }
-  if ((r->size[0] == jerk_mag->size[0]) && (b_loop_ub == accel_mag->size[0])) {
-    b_loop_ub = r->size[0];
-    c_loop_ub = (r->size[0] / 2) << 1;
-    d_loop_ub = c_loop_ub - 2;
-    for (i = 0; i <= d_loop_ub; i += 2) {
+  if ((r->size[0] == jerk_mag->size[0]) && (iindx == accel_mag->size[0])) {
+    iindx = r->size[0];
+    b_loop_ub = (r->size[0] / 2) << 1;
+    vectorUB = b_loop_ub - 2;
+    for (i = 0; i <= vectorUB; i += 2) {
       r1 = _mm_loadu_pd(&ay_data[i]);
       r2 = _mm_loadu_pd(&gx_data[i]);
       r3 = _mm_loadu_pd(&az_data[i]);
       _mm_storeu_pd(&ay_data[i], _mm_add_pd(_mm_add_pd(r1, r2), r3));
     }
-    for (i = c_loop_ub; i < b_loop_ub; i++) {
+    for (i = b_loop_ub; i < iindx; i++) {
       ay_data[i] = (ay_data[i] + gx_data[i]) + az_data[i];
     }
     features[18] = mean(r);
@@ -699,21 +576,21 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   az_data = accel_mag->data;
   emxFree_real_T(&gz);
   if (r->size[0] == 1) {
-    b_loop_ub = jerk_mag->size[0];
+    iindx = jerk_mag->size[0];
   } else {
-    b_loop_ub = r->size[0];
+    iindx = r->size[0];
   }
-  if ((r->size[0] == jerk_mag->size[0]) && (b_loop_ub == accel_mag->size[0])) {
-    b_loop_ub = r->size[0];
-    c_loop_ub = (r->size[0] / 2) << 1;
-    d_loop_ub = c_loop_ub - 2;
-    for (i = 0; i <= d_loop_ub; i += 2) {
+  if ((r->size[0] == jerk_mag->size[0]) && (iindx == accel_mag->size[0])) {
+    iindx = r->size[0];
+    b_loop_ub = (r->size[0] / 2) << 1;
+    vectorUB = b_loop_ub - 2;
+    for (i = 0; i <= vectorUB; i += 2) {
       r1 = _mm_loadu_pd(&ay_data[i]);
       r2 = _mm_loadu_pd(&gx_data[i]);
       r3 = _mm_loadu_pd(&az_data[i]);
       _mm_storeu_pd(&ay_data[i], _mm_add_pd(_mm_add_pd(r1, r2), r3));
     }
-    for (i = c_loop_ub; i < b_loop_ub; i++) {
+    for (i = b_loop_ub; i < iindx; i++) {
       ay_data[i] = (ay_data[i] + gx_data[i]) + az_data[i];
     }
     features[19] = mean(r);
@@ -736,100 +613,67 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
     g_vec[2] /= g_norm;
   }
   emxInit_real_T(&a, 2);
-  b_loop_ub = a->size[0] * a->size[1];
-  a->size[0] = loop_ub;
+  iindx = a->size[0] * a->size[1];
+  a->size[0] = raw_data->size[0];
   a->size[1] = 3;
-  emxEnsureCapacity_real_T(a, b_loop_ub);
+  emxEnsureCapacity_real_T(a, iindx);
   ay_data = a->data;
   for (i = 0; i < loop_ub; i++) {
     ay_data[i] = raw_data_data[i];
     ay_data[i + a->size[0]] = raw_data_data[i + raw_data->size[0]];
     ay_data[i + a->size[0] * 2] = raw_data_data[i + raw_data->size[0] * 2];
   }
-  b_loop_ub = ax->size[0];
-  ax->size[0] = loop_ub;
-  emxEnsureCapacity_real_T(ax, b_loop_ub);
+  iindx = ax->size[0];
+  ax->size[0] = raw_data->size[0];
+  emxEnsureCapacity_real_T(ax, iindx);
   ax_data = ax->data;
   for (i = 0; i < loop_ub; i++) {
     ax_data[i] = 0.0;
   }
-  scalarLB = (a->size[0] / 2) << 1;
-  b_loop_ub = scalarLB - 2;
+  b_loop_ub = (a->size[0] / 2) << 1;
+  iindx = b_loop_ub - 2;
   for (i = 0; i < 3; i++) {
     g_norm = g_vec[i];
-    for (i3 = 0; i3 <= b_loop_ub; i3 += 2) {
-      r1 = _mm_loadu_pd(&ay_data[i3 + a->size[0] * i]);
-      r2 = _mm_loadu_pd(&ax_data[i3]);
-      _mm_storeu_pd(&ax_data[i3],
+    for (b_i = 0; b_i <= iindx; b_i += 2) {
+      r1 = _mm_loadu_pd(&ay_data[b_i + a->size[0] * i]);
+      r2 = _mm_loadu_pd(&ax_data[b_i]);
+      _mm_storeu_pd(&ax_data[b_i],
                     _mm_add_pd(r2, _mm_mul_pd(r1, _mm_set1_pd(g_norm))));
     }
-    for (i3 = scalarLB; i3 < loop_ub; i3++) {
-      ax_data[i3] += ay_data[i3 + a->size[0] * i] * g_norm;
+    for (b_i = b_loop_ub; b_i < loop_ub; b_i++) {
+      ax_data[b_i] += ay_data[b_i + a->size[0] * i] * g_norm;
     }
   }
   if (a->size[0] == ax->size[0]) {
     emxInit_real_T(&b_a, 2);
-    b_loop_ub = b_a->size[0] * b_a->size[1];
-    b_a->size[0] = loop_ub;
+    iindx = b_a->size[0] * b_a->size[1];
+    b_a->size[0] = raw_data->size[0];
     b_a->size[1] = 3;
-    emxEnsureCapacity_real_T(b_a, b_loop_ub);
+    emxEnsureCapacity_real_T(b_a, iindx);
     az_data = b_a->data;
-    d_loop_ub = scalarLB - 2;
-    b_loop_ub = (scalarLB - 1) / 2;
-    c_loop_ub = a->size[0] - scalarLB;
-    if (b_loop_ub >= c_loop_ub) {
-      c_loop_ub = b_loop_ub;
-    }
-    if (3 * c_loop_ub < 1600) {
-      for (i4 = 0; i4 < 3; i4++) {
-        for (i5 = 0; i5 <= d_loop_ub; i5 += 2) {
-          r5 = _mm_loadu_pd(&ax_data[i5]);
-          r6 = _mm_loadu_pd(&ay_data[i5 + a->size[0] * i4]);
-          _mm_storeu_pd(&az_data[i5 + b_a->size[0] * i4],
-                        _mm_sub_pd(r6, _mm_mul_pd(r5, _mm_set1_pd(g_vec[i4]))));
-        }
-        for (i5 = scalarLB; i5 < loop_ub; i5++) {
-          az_data[i5 + b_a->size[0] * i4] =
-              ay_data[i5 + a->size[0] * i4] - ax_data[i5] * g_vec[i4];
-        }
+    iindx = b_loop_ub - 2;
+    for (i = 0; i < 3; i++) {
+      for (b_i = 0; b_i <= iindx; b_i += 2) {
+        r1 = _mm_loadu_pd(&ax_data[b_i]);
+        r2 = _mm_loadu_pd(&ay_data[b_i + a->size[0] * i]);
+        _mm_storeu_pd(&az_data[b_i + b_a->size[0] * i],
+                      _mm_sub_pd(r2, _mm_mul_pd(r1, _mm_set1_pd(g_vec[i]))));
       }
-    } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(r5, r6, i5)
-
-      for (i4 = 0; i4 < 3; i4++) {
-        for (i5 = 0; i5 <= d_loop_ub; i5 += 2) {
-          r5 = _mm_loadu_pd(&ax_data[i5]);
-          r5 = _mm_mul_pd(r5, _mm_set1_pd(g_vec[i4]));
-          r6 = _mm_loadu_pd(&ay_data[i5 + a->size[0] * i4]);
-          r5 = _mm_sub_pd(r6, r5);
-          _mm_storeu_pd(&az_data[i5 + b_a->size[0] * i4], r5);
-        }
-        for (i5 = scalarLB; i5 < loop_ub; i5++) {
-          az_data[i5 + b_a->size[0] * i4] =
-              ay_data[i5 + a->size[0] * i4] - ax_data[i5] * g_vec[i4];
-        }
+      for (b_i = b_loop_ub; b_i < loop_ub; b_i++) {
+        az_data[b_i + b_a->size[0] * i] =
+            ay_data[b_i + a->size[0] * i] - ax_data[b_i] * g_vec[i];
       }
     }
     emxInit_real_T(&r4, 2);
-    b_loop_ub = r4->size[0] * r4->size[1];
+    iindx = r4->size[0] * r4->size[1];
     r4->size[0] = b_a->size[0];
     r4->size[1] = 3;
-    emxEnsureCapacity_real_T(r4, b_loop_ub);
+    emxEnsureCapacity_real_T(r4, iindx);
     ay_data = r4->data;
-    b_loop_ub = b_a->size[0] * 3;
-    if (b_loop_ub < 1600) {
-      for (i6 = 0; i6 < b_loop_ub; i6++) {
-        g_norm = az_data[i6];
-        ay_data[i6] = g_norm * g_norm;
-      }
-    } else {
-#pragma omp parallel for num_threads(omp_get_max_threads()) private(           \
-        i_varargin_1)
-
-      for (i6 = 0; i6 < b_loop_ub; i6++) {
-        i_varargin_1 = az_data[i6];
-        ay_data[i6] = i_varargin_1 * i_varargin_1;
-      }
+    iindx = b_a->size[0] * 3;
+    for (i = 0; i < iindx; i++) {
+      g_norm = az_data[i];
+      ay_data[i] = g_norm * g_norm;
     }
     emxFree_real_T(&b_a);
     sum(r4, a_perp);
@@ -847,36 +691,23 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
       acos(fmax(-1.0, fmin(1.0, (g_vec[0] * 0.0 + g_vec[1] * 0.0) + g_vec[2])));
   features[22] = b_std(ax);
   /*  4) 상·하 비대칭 */
-  d_loop_ub = ax->size[0];
-  b_loop_ub = jerk_mag->size[0];
+  b_loop_ub = ax->size[0];
+  iindx = jerk_mag->size[0];
   jerk_mag->size[0] = ax->size[0];
-  emxEnsureCapacity_real_T(jerk_mag, b_loop_ub);
+  emxEnsureCapacity_real_T(jerk_mag, iindx);
   gx_data = jerk_mag->data;
-  c_loop_ub = ax->size[0];
-  b_loop_ub = accel_mag->size[0];
+  iindx = accel_mag->size[0];
   accel_mag->size[0] = ax->size[0];
-  emxEnsureCapacity_real_T(accel_mag, b_loop_ub);
+  emxEnsureCapacity_real_T(accel_mag, iindx);
   az_data = accel_mag->data;
-  if (ax->size[0] < 1600) {
-    for (c_i = 0; c_i < d_loop_ub; c_i++) {
-      gx_data[c_i] = ax_data[c_i];
-      if (ax_data[c_i] < 0.0) {
-        gx_data[c_i] = 0.0;
-      }
-      az_data[c_i] = -ax_data[c_i];
+  for (i = 0; i < b_loop_ub; i++) {
+    gx_data[i] = ax_data[i];
+    if (ax_data[i] < 0.0) {
+      gx_data[i] = 0.0;
     }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (c_i = 0; c_i < c_loop_ub; c_i++) {
-      gx_data[c_i] = ax_data[c_i];
-      if (ax_data[c_i] < 0.0) {
-        gx_data[c_i] = 0.0;
-      }
-      az_data[c_i] = -ax_data[c_i];
-    }
+    az_data[i] = -ax_data[i];
   }
-  for (i = 0; i < d_loop_ub; i++) {
+  for (i = 0; i < b_loop_ub; i++) {
     if (az_data[i] < 0.0) {
       az_data[i] = 0.0;
     }
@@ -886,14 +717,14 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   /*  5) 전환 날카로움 */
   gradient(ax, jerk_mag);
   gx_data = jerk_mag->data;
-  b_loop_ub = jerk_mag->size[0];
-  c_loop_ub = (jerk_mag->size[0] / 2) << 1;
-  d_loop_ub = c_loop_ub - 2;
-  for (i = 0; i <= d_loop_ub; i += 2) {
+  iindx = jerk_mag->size[0];
+  b_loop_ub = (jerk_mag->size[0] / 2) << 1;
+  vectorUB = b_loop_ub - 2;
+  for (i = 0; i <= vectorUB; i += 2) {
     r1 = _mm_loadu_pd(&gx_data[i]);
     _mm_storeu_pd(&gx_data[i], _mm_mul_pd(r1, _mm_set1_pd(Fs_actual)));
   }
-  for (i = c_loop_ub; i < b_loop_ub; i++) {
+  for (i = b_loop_ub; i < iindx; i++) {
     gx_data[i] *= Fs_actual;
   }
   if (jerk_mag->size[0] == 0) {
@@ -906,46 +737,27 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   }
   /*  6) 회전 휴지 비율 */
   emxInit_boolean_T(&b_gyro_mag, 1);
-  c_loop_ub = gyro_mag->size[0];
-  b_loop_ub = b_gyro_mag->size[0];
-  b_gyro_mag->size[0] = gyro_mag->size[0];
-  emxEnsureCapacity_boolean_T(b_gyro_mag, b_loop_ub);
-  gyro_mag_data = b_gyro_mag->data;
   b_loop_ub = gyro_mag->size[0];
-  if (gyro_mag->size[0] < 1600) {
-    for (i7 = 0; i7 < c_loop_ub; i7++) {
-      gyro_mag_data[i7] = (gy_data[i7] < 0.17453292519943295);
-    }
-  } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-    for (i7 = 0; i7 < b_loop_ub; i7++) {
-      gyro_mag_data[i7] = (gy_data[i7] < 0.17453292519943295);
-    }
+  iindx = b_gyro_mag->size[0];
+  b_gyro_mag->size[0] = gyro_mag->size[0];
+  emxEnsureCapacity_boolean_T(b_gyro_mag, iindx);
+  gyro_mag_data = b_gyro_mag->data;
+  for (i = 0; i < b_loop_ub; i++) {
+    gyro_mag_data[i] = (gy_data[i] < 0.17453292519943295);
   }
   features[25] = b_mean(b_gyro_mag);
   /*  7) 이동 듀티 */
   b_abs(ax, r);
   ay_data = r->data;
   if (r->size[0] == gyro_mag->size[0]) {
-    c_loop_ub = r->size[0];
-    b_loop_ub = b_gyro_mag->size[0];
-    b_gyro_mag->size[0] = r->size[0];
-    emxEnsureCapacity_boolean_T(b_gyro_mag, b_loop_ub);
-    gyro_mag_data = b_gyro_mag->data;
     b_loop_ub = r->size[0];
-    if (r->size[0] < 1600) {
-      for (i8 = 0; i8 < c_loop_ub; i8++) {
-        gyro_mag_data[i8] =
-            ((ay_data[i8] > 0.15) || (gy_data[i8] > 0.43633231299858238));
-      }
-    } else {
-#pragma omp parallel for num_threads(omp_get_max_threads())
-
-      for (i8 = 0; i8 < b_loop_ub; i8++) {
-        gyro_mag_data[i8] =
-            ((ay_data[i8] > 0.15) || (gy_data[i8] > 0.43633231299858238));
-      }
+    iindx = b_gyro_mag->size[0];
+    b_gyro_mag->size[0] = r->size[0];
+    emxEnsureCapacity_boolean_T(b_gyro_mag, iindx);
+    gyro_mag_data = b_gyro_mag->data;
+    for (i = 0; i < b_loop_ub; i++) {
+      gyro_mag_data[i] =
+          ((ay_data[i] > 0.15) || (gy_data[i] > 0.43633231299858238));
     }
     features[26] = b_mean(b_gyro_mag);
   } else {
@@ -977,10 +789,10 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   emxFree_real_T(&t);
   /*  10) 가속 PCA 1축성 */
   emxInit_real_T(&a__5, 2);
-  b_loop_ub = pca(a, a__4_data, a__4_size, a__5, latent_data);
+  iindx = pca(a, a__4_data, a__4_size, a__5, latent_data);
   emxFree_real_T(&a__5);
   emxFree_real_T(&a);
-  g_norm = b_sum(latent_data, b_loop_ub);
+  g_norm = b_sum(latent_data, iindx);
   if (g_norm == 0.0) {
     features[30] = 0.0;
   } else {
@@ -990,20 +802,20 @@ void feature_extractor_codegen(const emxArray_real_T *raw_data,
   periodogram(ax, Fs_actual, jerk_mag, accel_mag);
   gx_data = jerk_mag->data;
   emxFree_real_T(&accel_mag);
-  d_loop_ub = jerk_mag->size[0];
-  b_loop_ub = ax->size[0];
+  vectorUB = jerk_mag->size[0];
+  iindx = ax->size[0];
   ax->size[0] = jerk_mag->size[0];
-  emxEnsureCapacity_real_T(ax, b_loop_ub);
+  emxEnsureCapacity_real_T(ax, iindx);
   ax_data = ax->data;
-  b_loop_ub = (jerk_mag->size[0] / 2) << 1;
-  c_loop_ub = b_loop_ub - 2;
-  for (i = 0; i <= c_loop_ub; i += 2) {
+  iindx = (jerk_mag->size[0] / 2) << 1;
+  b_loop_ub = iindx - 2;
+  for (i = 0; i <= b_loop_ub; i += 2) {
     r1 = _mm_loadu_pd(&gx_data[i]);
     r1 = _mm_add_pd(r1, _mm_set1_pd(2.2204460492503131E-16));
     _mm_storeu_pd(&ax_data[i], r1);
     _mm_storeu_pd(&gx_data[i], r1);
   }
-  for (i = b_loop_ub; i < d_loop_ub; i++) {
+  for (i = iindx; i < vectorUB; i++) {
     g_norm = gx_data[i] + 2.2204460492503131E-16;
     ax_data[i] = g_norm;
     gx_data[i] = g_norm;

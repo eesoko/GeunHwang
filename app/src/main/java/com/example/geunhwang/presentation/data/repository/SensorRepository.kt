@@ -12,7 +12,7 @@ import kotlin.math.sqrt
 class SensorRepository(context: Context) : SensorEventListener {
 
     var onMotionStarted: (() -> Unit)? = null
-    var onMotionStopped: ((List<FloatArray>) -> Unit)? = null
+    var onMotionStopped: ((Pair<List<FloatArray>, Double>) -> Unit)? = null
 
     private var sensorManager: SensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -34,7 +34,8 @@ class SensorRepository(context: Context) : SensorEventListener {
     private var sensorDataBuffer = mutableListOf<FloatArray>()
     private var pulseTimestamps = mutableListOf<Long>() // 펄스 발생 시간을 기록할 리스트
     private var isAboveThreshold = false // 펄스의 '정점'을 한 번만 감지하기 위한 플래그
-    // --- ▲▲▲ ---
+    private var firstTimestampNs: Long = 0L // 세트 시작 시 첫 센서 이벤트의 나노초 시간
+    private var eventCount: Int = 0         // 세트 동안 수집된 이벤트 개수
 
     fun startListening() {
         if (isListening) return
@@ -94,17 +95,36 @@ class SensorRepository(context: Context) : SensorEventListener {
         }
         // 2. 움직임이 펄스 임계값 아래로 내려왔을 때
         else {
-            isAboveThreshold = false // 다시 펄스를 감지할 수 있도록 플래그 초기화
+            isAboveThreshold = false
 
-            // 운동 모드 중에 움직임이 멈췄다면 -> '세트 종료' 타이머 시작
             if (isWorkoutMode && motionStopJob?.isActive != true) {
                 motionStopJob = detectionScope.launch {
                     delay(SET_END_DURATION_MS)
-                    // 3초의 지연 후에도 계속 멈춰있다면 -> 진짜 세트 종료!
+
+                    // --- ▼▼▼ 이 부분이 추가되었습니다 ▼▼▼ ---
+                    val lastTimestampNs = event.timestamp // 마지막 이벤트 시간 기록
+                    // --- ▲▲▲ ---
+
                     isWorkoutMode = false
-                    pulseTimestamps.clear() // 다음 세트를 위해 펄스 카운트 초기화
-                    onMotionStopped?.invoke(sensorDataBuffer.toList())
+                    pulseTimestamps.clear()
+
+                    // --- ▼▼▼ 이 부분이 추가되었습니다 (Fs 계산) ▼▼▼ ---
+                    // 첫 이벤트 시간과 마지막 이벤트 시간의 차이 계산
+                    val elapsedTimeNs = lastTimestampNs - firstTimestampNs
+                    // 실제 Fs 계산: (이벤트 수 - 1) / 시간(초)
+                    val actualFs = if (elapsedTimeNs > 0 && eventCount > 1) {
+                        (eventCount - 1).toDouble() / (elapsedTimeNs / 1_000_000_000.0)
+                    } else {
+                        50.0 // 기본값
+                    }
                     Log.d("SensorRepo", "====== WORKOUT MODE STOPPED (Set End) ======")
+                    Log.d("SensorRepo", "Actual Fs: $actualFs Hz ($eventCount events in ${elapsedTimeNs / 1_000_000.0} ms)") // 계산 결과 로깅
+                    // --- ▲▲▲ ---
+
+                    // --- ▼▼▼ 이 부분이 변경되었습니다 (Pair 전달) ▼▼▼ ---
+                    // Fs 계산 결과를 데이터와 함께 Pair로 묶어 전달
+                    onMotionStopped?.invoke(Pair(sensorDataBuffer.toList(), actualFs))
+                    // --- ▲▲▲ ---
                 }
             }
         }

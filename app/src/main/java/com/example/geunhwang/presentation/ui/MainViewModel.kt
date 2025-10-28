@@ -6,7 +6,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.geunhwang.presentation.data.SensorDataLogger
 import com.example.geunhwang.presentation.data.local.AppDatabase
@@ -37,7 +38,10 @@ sealed class WorkoutState {
 }
 
 
-class MainViewModel(application: Application) : AndroidViewModel(application), SensorEventListener {
+class MainViewModel(
+    application: Application,
+    private val mainActivity: MainActivity
+) : ViewModel(), SensorEventListener {
 
     // --- StateFlow 정의 (기존과 동일) ---
     private val _uiState = MutableStateFlow<WorkoutState>(WorkoutState.InitialRest)
@@ -67,24 +71,41 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
     private var lastGyroData = floatArrayOf(0f, 0f, 0f)
 
     init {
-        val app = getApplication<Application>()
+        val app = application
         val workoutDao = AppDatabase.getDatabase(app).workoutDao()
         workoutRepository = WorkoutRepository(workoutDao)
         sensorRepository = SensorRepository(app)
 
-        // --- 데이터 수집용 센서 및 로거 초기화 ---
         sensorDataLogger = SensorDataLogger(app)
         sensorManager = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
 
-        // --- 센서-ViewModel 연결 (기존과 동일) ---
         sensorRepository.onMotionStarted = { onWorkoutPulseDetected() }
-        sensorRepository.onMotionStopped = { sensorData ->
-            val detectedExercise = "Squat"
-            val detectedReps = 12
-            onSetFinished(detectedExercise, detectedReps)
+
+        // --- ▼▼▼ 여기가 수정된 부분입니다 ▼▼▼ ---
+        sensorRepository.onMotionStopped = { dataPair: Pair<List<FloatArray>, Double> -> // 'it' 대신 'dataPair'라는 이름 사용 (Pair<List<FloatArray>, Double>)
+
+            // 1. Pair에서 데이터와 Fs 추출
+            val sensorDataList = dataPair.first // List<FloatArray>
+            val actualFs = dataPair.second      // Double
+
+            // 데이터 비어있는지 확인 (return 레이블 제거)
+            if (!sensorDataList.isEmpty()) {
+                // --- ▲▲▲ ---
+
+                // 데이터가 비어있지 않을 때만 아래 로직 실행
+                val sensorDataArray = sensorDataList.toTypedArray()
+                val resultString = mainActivity.predictMotionNative(sensorDataArray, actualFs)
+
+                val parts = resultString.split(",")
+                val detectedExercise = parts.getOrNull(0) ?: "Unknown"
+                val detectedReps = parts.getOrNull(1)?.toIntOrNull() ?: 0
+
+                onSetFinished(detectedExercise, detectedReps)
+            }
         }
+        // --- ▲▲▲ ---
 
         loadLogbookData()
     }
@@ -181,6 +202,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
         restTimerJob = viewModelScope.launch { _restTime.value = 0; while (true) { delay(1000); _restTime.value++ } }
     }
     private fun stopRestTimer() { restTimerJob?.cancel(); restTimerJob = null }
+
     override fun onCleared() {
         super.onCleared()
         sensorManager.unregisterListener(this)
@@ -188,4 +210,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application), S
         stopTotalTimer()
         stopRestTimer()
     }
+
+    class Factory(private val activity: MainActivity) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return MainViewModel(activity.application, activity) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
+
 }
